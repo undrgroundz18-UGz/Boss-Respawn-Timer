@@ -75,16 +75,16 @@ const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1"
 
 /* ================= BOSSES ================= */
 const bosses = [
-  { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10, type: "Daily" },
-  { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10, type: "Daily" },
-  { name: "Ego", level: 70, location: "Ulan Canyon", respawnHours: 21, type: "Daily" },
-  { name: "Livera", level: 75, location: "Protectors Ruins", respawnHours: 24, type: "Daily" },
-  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24, type: "Daily" },
-  { name: "Undomiel", level: 80, location: "Secret Lab", respawnHours: 24, type: "Daily" },
-  { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18, type: "Daily" },
-  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29, type: "Weekly" },
-  { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29, type: "Weekly" },
-  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32, type: "Weekly" }
+  { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10 },
+  { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10 },
+  { name: "Ego", level: 70, location: "Ulan Canyon", respawnHours: 21 },
+  { name: "Livera", level: 75, location: "Protectors Ruins", respawnHours: 24 },
+  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24 },
+  { name: "Undomiel", level: 80, location: "Secret Lab", respawnHours: 24 },
+  { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18 },
+  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29 },
+  { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29 },
+  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 168 } // weekly
 ];
 
 /* ================= DATA ================= */
@@ -148,7 +148,6 @@ function renderSection(title, bossesList) {
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
 
-  // Header
   const header = document.createElement("tr");
   ["Name", "Status", "Respawn", "Countdown"].forEach(text => {
     const th = document.createElement("th");
@@ -160,7 +159,6 @@ function renderSection(title, bossesList) {
   });
   table.appendChild(header);
 
-  // Sort by remaining
   const sorted = [...bossesList].sort((a, b) => {
     const ra = remaining(a) ?? Infinity;
     const rb = remaining(b) ?? Infinity;
@@ -172,7 +170,8 @@ function renderSection(title, bossesList) {
     let status = "Waiting";
     let color = "red"; // killed
     if (r === null || r <= 0) { status = "Spawned Today"; color = "green"; }
-    else if (r < 3600000) { status = "Almost Spawn"; color = "orange"; }
+    else if (r <= 18000000) { status = "Almost Spawn"; color = "orange"; } // <= 5hrs
+    else { status = "Killed"; color = "red"; }
 
     const tr = document.createElement("tr");
 
@@ -197,13 +196,11 @@ function renderSection(title, bossesList) {
     tdCountdown.innerText = r === null ? "Not killed yet" : format(r);
 
     if (isAdmin) {
-      const br = document.createElement("br");
-      tdCountdown.appendChild(br);
-
       const killBtn = document.createElement("button");
       killBtn.innerText = "Boss Killed";
       killBtn.style.marginRight = "5px";
       killBtn.onclick = () => markKilled(boss.name);
+      tdCountdown.appendChild(document.createElement("br"));
       tdCountdown.appendChild(killBtn);
 
       const resetBtn = document.createElement("button");
@@ -224,11 +221,16 @@ function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
-  const weeklyBosses = bosses.filter(b => b.type === "Weekly");
-  const dailyBosses = bosses.filter(b => b.type === "Daily");
+  const weeklyBosses = bosses.filter(b => b.respawnHours >= 168)
+    .filter(b => {
+      const r = remaining(b);
+      return r === null || r <= 18000000 || r <= 0; // spawn or almost spawn ≤5h
+    });
 
-  list.appendChild(renderSection("Weekly Bosses", weeklyBosses));
-  list.appendChild(renderSection("Daily Bosses", dailyBosses));
+  const dailyBosses = bosses.filter(b => b.respawnHours < 168);
+
+  if (weeklyBosses.length) list.appendChild(renderSection("Weekly Bosses", weeklyBosses));
+  if (dailyBosses.length) list.appendChild(renderSection("Daily Bosses", dailyBosses));
 }
 
 /* ================= START ================= */
@@ -239,8 +241,10 @@ setInterval(render, 1000);
 
 
 
+
 </body>
 </html>
+
 
 
 
