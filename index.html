@@ -54,6 +54,7 @@ import {
   getFirestore,
   doc,
   setDoc,
+  getDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -93,27 +94,35 @@ let bossData = {};
 /* ================= FIREBASE LISTENERS ================= */
 function listenBoss(boss) {
   const ref = doc(db, "bosses", boss.name);
+  
+  // Listen for changes in real-time
   onSnapshot(ref, snap => {
     if (snap.exists()) {
       bossData[boss.name] = snap.data();
-      render();
+    } else {
+      // If doc doesn't exist, create it with default values
+      setDoc(ref, { lastKill: 0, respawnMs: boss.respawnHours * 3600000 });
+      bossData[boss.name] = { lastKill: 0, respawnMs: boss.respawnHours * 3600000 };
     }
+    render();
   });
 }
 
 /* ================= ACTIONS ================= */
-function markKilled(boss) {
-  setDoc(doc(db, "bosses", boss.name), {
-    lastKill: Date.now(),
-    respawnMs: boss.respawnHours * 3600000
-  });
+async function markKilled(boss) {
+  const ref = doc(db, "bosses", boss.name);
+  const snap = await getDoc(ref);
+  
+  if (!snap.exists()) {
+    await setDoc(ref, { lastKill: Date.now(), respawnMs: boss.respawnHours * 3600000 });
+  } else {
+    await setDoc(ref, { lastKill: Date.now(), respawnMs: boss.respawnHours * 3600000 }, { merge: true });
+  }
 }
 
-function resetBoss(name) {
-  setDoc(doc(db, "bosses", name), {
-    lastKill: 0,
-    respawnMs: 0
-  });
+async function resetBoss(name) {
+  const ref = doc(db, "bosses", name);
+  await setDoc(ref, { lastKill: 0, respawnMs: 0 }, { merge: true });
 }
 
 /* ================= TIMER ================= */
@@ -167,5 +176,6 @@ setInterval(render, 1000);
 
 </body>
 </html>
+
 
 
