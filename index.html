@@ -70,8 +70,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= ADMIN ================= */
-const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
+/* ================= ADMIN PASSWORD ================= */
+let isAdmin = false;
+const urlAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
+if (urlAdmin) {
+  const password = prompt("Enter admin password:");
+  // change "secret123" to your real password
+  if (password === "UGzMamaMia") isAdmin = true;
+  else alert("Wrong password. Admin disabled.");
+}
 
 /* ================= BOSSES ================= */
 const bosses = [
@@ -84,7 +91,7 @@ const bosses = [
   { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18 },
   { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29 },
   { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29 },
-  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 168 } // weekly
+  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32 } // NOT weekly
 ];
 
 /* ================= DATA ================= */
@@ -167,11 +174,11 @@ function renderSection(title, bossesList) {
 
   sorted.forEach(boss => {
     const r = remaining(boss);
-    let status = "Waiting";
-    let color = "red"; // killed
+    let status = "Killed";
+    let color = "red";
+
     if (r === null || r <= 0) { status = "Spawned Today"; color = "green"; }
-    else if (r <= 18000000) { status = "Almost Spawn"; color = "orange"; } // <= 5hrs
-    else { status = "Killed"; color = "red"; }
+    else if (r <= 18000000) { status = "SOON"; color = "orange"; } // ≤5hrs
 
     const tr = document.createElement("tr");
 
@@ -224,7 +231,7 @@ function render() {
   const weeklyBosses = bosses.filter(b => b.respawnHours >= 168)
     .filter(b => {
       const r = remaining(b);
-      return r === null || r <= 18000000 || r <= 0; // spawn or almost spawn ≤5h
+      return r === null || r <= 18000000 || r <= 0; // spawn or SOON ≤5h
     });
 
   const dailyBosses = bosses.filter(b => b.respawnHours < 168);
@@ -242,8 +249,10 @@ setInterval(render, 1000);
 
 
 
+
 </body>
 </html>
+
 
 
 
