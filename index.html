@@ -132,17 +132,25 @@ function format(ms) {
 }
 
 /* ================= UI ================= */
-function render() {
-  const list = document.getElementById("bossList");
-  list.innerHTML = "";
+function renderSection(title, bossesList) {
+  const container = document.createElement("div");
+  container.style.border = "1px solid #eee";
+  container.style.borderRadius = "8px";
+  container.style.padding = "10px";
+  container.style.marginBottom = "20px";
+
+  const h2 = document.createElement("h2");
+  h2.innerText = title;
+  h2.style.textAlign = "center";
+  container.appendChild(h2);
 
   const table = document.createElement("table");
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
 
-  // Table header
+  // Header
   const header = document.createElement("tr");
-  ["Name", "Type", "Status", "Respawn", "Countdown"].forEach(text => {
+  ["Name", "Status", "Respawn", "Countdown"].forEach(text => {
     const th = document.createElement("th");
     th.innerText = text;
     th.style.borderBottom = "1px solid #eee";
@@ -152,15 +160,14 @@ function render() {
   });
   table.appendChild(header);
 
-  // Sort bosses by remaining time
-  const sorted = [...bosses].sort((a, b) => {
+  // Sort by remaining
+  const sorted = [...bossesList].sort((a, b) => {
     const ra = remaining(a) ?? Infinity;
     const rb = remaining(b) ?? Infinity;
     return ra - rb;
   });
 
-  // Add row
-  function addRow(boss) {
+  sorted.forEach(boss => {
     const r = remaining(boss);
     let status = "Waiting";
     let color = "red"; // killed
@@ -174,15 +181,10 @@ function render() {
     tdName.style.padding = "8px";
     tr.appendChild(tdName);
 
-    const tdType = document.createElement("td");
-    tdType.innerText = boss.type;
-    tdType.style.padding = "8px";
-    tr.appendChild(tdType);
-
     const tdStatus = document.createElement("td");
     tdStatus.innerText = status;
-    tdStatus.style.padding = "8px";
     tdStatus.style.color = color;
+    tdStatus.style.padding = "8px";
     tr.appendChild(tdStatus);
 
     const tdRespawn = document.createElement("td");
@@ -212,12 +214,21 @@ function render() {
 
     tr.appendChild(tdCountdown);
     table.appendChild(tr);
-  }
+  });
 
-  // Render all
-  sorted.forEach(addRow);
+  container.appendChild(table);
+  return container;
+}
 
-  list.appendChild(table);
+function render() {
+  const list = document.getElementById("bossList");
+  list.innerHTML = "";
+
+  const weeklyBosses = bosses.filter(b => b.type === "Weekly");
+  const dailyBosses = bosses.filter(b => b.type === "Daily");
+
+  list.appendChild(renderSection("Weekly Bosses", weeklyBosses));
+  list.appendChild(renderSection("Daily Bosses", dailyBosses));
 }
 
 /* ================= START ================= */
@@ -227,8 +238,10 @@ setInterval(render, 1000);
 
 
 
+
 </body>
 </html>
+
 
 
 
