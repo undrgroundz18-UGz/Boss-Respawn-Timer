@@ -2,30 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Boss Schedule Viewer</title>
+  <title>Boss Schedule Admin</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     .boss { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    button { margin-top: 5px; }
   </style>
 </head>
 <body>
-  <h1>Boss Respawn Schedule</h1>
+  <h1>Boss Schedule Admin</h1>
 
   <div class="boss">
     <h3>Dragon Boss</h3>
     <p>Next spawn: <span id="dragon-timer">--:--</span></p>
+    <button onclick="markBossKilled('dragon')">Mark as Killed</button>
   </div>
 
   <div class="boss">
     <h3>Ogre Boss</h3>
     <p>Next spawn: <span id="ogre-timer">--:--</span></p>
+    <button onclick="markBossKilled('ogre')">Mark as Killed</button>
   </div>
 
   <script>
-    // Example timers (replace with actual schedule logic)
-    const timers = {
-      dragon: new Date(new Date().getTime() + 3600 * 1000), // +1 hour
-      ogre: new Date(new Date().getTime() + 7200 * 1000)    // +2 hours
+    // Initial timers (example)
+    let timers = {
+      dragon: new Date(new Date().getTime() + 3600 * 1000),
+      ogre: new Date(new Date().getTime() + 7200 * 1000)
     };
 
     function updateTimers() {
@@ -37,6 +40,15 @@
         document.getElementById(`${boss}-timer`).innerText = 
           diff > 0 ? `${minutes}m ${seconds}s` : "SPAWN!";
       }
+    }
+
+    function markBossKilled(bossId) {
+      const now = new Date();
+      console.log(`${bossId} killed at ${now.toLocaleTimeString()}`);
+      alert(`${bossId} marked as killed!`);
+      // Reset timer (example: 1 hour later)
+      timers[bossId] = new Date(now.getTime() + 3600 * 1000);
+      updateTimers();
     }
 
     setInterval(updateTimers, 1000);
