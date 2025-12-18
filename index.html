@@ -8,26 +8,32 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background:#111;
-  color:#eee;
-  padding:20px;
+  background: #111;
+  color: #eee;
+  padding: 20px;
 }
-h1 { text-align:center; }
+
+h1 {
+  text-align: center;
+}
+
 .boss {
-  background:#222;
-  border-radius:8px;
-  padding:15px;
-  margin:15px auto;
-  max-width:600px;
+  background: #222;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px auto;
+  max-width: 600px;
 }
+
 button {
-  margin-top:10px;
-  padding:8px 12px;
-  cursor:pointer;
+  margin-top: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
 }
+
 .timer {
-  margin-top:10px;
-  font-weight:bold;
+  margin-top: 10px;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -38,81 +44,74 @@ button {
 <div id="bossList"></div>
 
 <script>
-// ================== CONFIG ==================
-const bosses = [
-  { name: "Venatus", respawnHours: 10 },
-  { name: "Viorent", respawnHours: 10 },
-  { name: "Ego", respawnHours: 21 },
-  { name: "Livera", respawnHours: 24 },
-  { name: "Araneo", respawnHours: 24 },
-  { name: "Undomiel", respawnHours: 24 },
-  { name: "Lady Dalia", respawnHours: 18 },
-  { name: "General Aquleus", respawnHours: 29 },
-  { name: "Amentis", respawnHours: 29 },
-  { name: "Baron Braudmore", respawnHours: 32 },
-  { name: "Wanitas", respawnHours: 48 },
-  { name: "Metus", respawnHours: 48 },
-  { name: "Duplican", respawnHours: 48 },
-  { name: "Shuliar", respawnHours: 35 },
-  { name: "Gareth", respawnHours: 32 },
-  { name: "Titore", respawnHours: 37 },
-  { name: "Larba", respawnHours: 35 },
-  { name: "Catena", respawnHours: 35 },
-  { name: "Secreta", respawnHours: 62 },
-  { name: "Ordo", respawnHours: 62 },
-  { name: "Asta", respawnHours: 62 },
-  { name: "Supore", respawnHours: 62 }
-];
-
-// ================== ADMIN CHECK ==================
+// ================== ADMIN MODE ==================
 const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
+
+// ================== BOSS CONFIG ==================
+const bosses = [
+  { name: "Venatus", level: 60, location: "Corrupted River Stream", respawnHours: 10 },
+  { name: "Viorent", level: 65, location: "Gill Stream", respawnHours: 10 },
+  { name: "Ego", level: 70, location: "Reclaimed Gathering Point", respawnHours: 21 },
+  { name: "Livera", level: 75, location: "Black Storm Peninsula", respawnHours: 24 },
+  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24 },
+  { name: "Undomiel", level: 80, location: "Test Subject Lab", respawnHours: 24 },
+  { name: "Lady Dalia", level: 85, location: "Bloody Shadow", respawnHours: 18 },
+  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29 },
+  { name: "Amentis", level: 88, location: "Limestone Cape", respawnHours: 29 },
+  { name: "Baron Braudmore", level: 88, location: "Rosevine Bridge", respawnHours: 32 }
+];
 
 // ================== STORAGE ==================
 let bossData = {};
 
-function load() {
-  const data = localStorage.getItem("bossData");
-  bossData = data ? JSON.parse(data) : {};
+function loadData() {
+  const saved = localStorage.getItem("bossData");
+  bossData = saved ? JSON.parse(saved) : {};
 }
 
-function save() {
+function saveData() {
   localStorage.setItem("bossData", JSON.stringify(bossData));
 }
 
-// ================== LOGIC ==================
-function markKilled(name, hours) {
-  const nextSpawn = Date.now() + hours * 3600000;
-  bossData[name] = nextSpawn;
-  save();
+// ================== TIMER LOGIC ==================
+function markKilled(boss) {
+  const nextSpawn = Date.now() + boss.respawnHours * 3600000;
+  bossData[boss.name] = nextSpawn;
+  saveData();
 }
 
-function timeRemaining(ts) {
-  if (!ts) return "Not killed yet";
-  const diff = ts - Date.now();
+function timeRemaining(timestamp) {
+  if (!timestamp) return "Not killed yet";
+
+  const diff = timestamp - Date.now();
   if (diff <= 0) return "SPAWNED / CHECK NOW";
 
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
+
   return `${h}h ${m}m ${s}s`;
 }
 
-// ================== UI ==================
+// ================== UI RENDER ==================
 function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
-  bosses.forEach(b => {
+  bosses.forEach(boss => {
     const div = document.createElement("div");
     div.className = "boss";
 
     div.innerHTML = `
-      <strong>${b.name}</strong><br>
-      Respawn: ${b.respawnHours} hours
+      <strong>${boss.name}</strong> (Lv ${boss.level})<br>
+      <em>${boss.location}</em><br>
+      Respawn: ${boss.respawnHours} hours
+
       <div class="timer">
-        Next Spawn In: ${timeRemaining(bossData[b.name])}
+        Next Spawn In: ${timeRemaining(bossData[boss.name])}
       </div>
-      ${isAdmin ? `<button onclick="markKilled('${b.name}', ${b.respawnHours})">Boss Killed</button>` : ""}
+
+      ${isAdmin ? `<button onclick='markKilled(${JSON.stringify(boss)})'>Boss Killed</button>` : ""}
     `;
 
     list.appendChild(div);
@@ -120,7 +119,7 @@ function render() {
 }
 
 // ================== INIT ==================
-load();
+loadData();
 render();
 setInterval(render, 1000);
 </script>
