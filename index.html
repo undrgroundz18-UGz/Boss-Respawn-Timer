@@ -48,11 +48,32 @@ button {
 <h1>Boss Respawn Timer</h1>
 <div id="bossList"></div>
 
-<script>
-// ================== ADMIN MODE ==================
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* 🔥 FIREBASE CONFIG — REPLACE WITH YOUR OWN 🔥 */
+const firebaseConfig = {
+  apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
+  authDomain: "boss-respawn-timer.firebaseapp.com",
+  projectId: "boss-respawn-timer",
+  storageBucket: "boss-respawn-timer.firebasestorage.app",
+  messagingSenderId: "767083470052",
+  appId: "1:767083470052:web:17d7453fe66700321760f1",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= ADMIN ================= */
 const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
 
-// ================== BOSS CONFIG ==================
+/* ================= BOSSES ================= */
 const bosses = [
   { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10 },
   { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10 },
@@ -66,30 +87,43 @@ const bosses = [
   { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32 }
 ];
 
-// ================== STORAGE ==================
-let bossData = JSON.parse(localStorage.getItem("bossData") || "{}");
+/* ================= DATA ================= */
+let bossData = {};
 
-function saveData() {
-  localStorage.setItem("bossData", JSON.stringify(bossData));
+/* ================= FIREBASE LISTENERS ================= */
+function listenBoss(boss) {
+  const ref = doc(db, "bosses", boss.name);
+  onSnapshot(ref, snap => {
+    if (snap.exists()) {
+      bossData[boss.name] = snap.data();
+      render();
+    }
+  });
 }
 
-// ================== TIMER LOGIC ==================
+/* ================= ACTIONS ================= */
 function markKilled(boss) {
-  bossData[boss.name] = Date.now() + boss.respawnHours * 3600000;
-  saveData();
+  setDoc(doc(db, "bosses", boss.name), {
+    lastKill: Date.now(),
+    respawnMs: boss.respawnHours * 3600000
+  });
 }
 
 function resetBoss(name) {
-  delete bossData[name];
-  saveData();
+  setDoc(doc(db, "bosses", name), {
+    lastKill: 0,
+    respawnMs: 0
+  });
 }
 
-function getRemaining(ts) {
-  if (!ts) return null;
-  return ts - Date.now();
+/* ================= TIMER ================= */
+function remaining(boss) {
+  const data = bossData[boss.name];
+  if (!data || !data.lastKill) return null;
+  return data.lastKill + data.respawnMs - Date.now();
 }
 
-function formatTime(ms) {
+function format(ms) {
   if (ms <= 0) return "SPAWNED / CHECK NOW";
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
@@ -97,52 +131,41 @@ function formatTime(ms) {
   return `${h}h ${m}m ${s}s`;
 }
 
-// ================== SORTING ==================
-function sortedBosses() {
-  return [...bosses].sort((a, b) => {
-    const ta = getRemaining(bossData[a.name]) ?? -1;
-    const tb = getRemaining(bossData[b.name]) ?? -1;
-    return ta - tb;
-  });
-}
-
-// ================== UI ==================
+/* ================= UI ================= */
 function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
-  sortedBosses().forEach(boss => {
-    const remaining = getRemaining(bossData[boss.name]);
-    let statusClass = "wait";
-
-    if (remaining === null || remaining <= 0) statusClass = "spawned";
-    else if (remaining < 3600000) statusClass = "soon";
+  bosses.forEach(boss => {
+    const r = remaining(boss);
+    let color = "wait";
+    if (r === null || r <= 0) color = "spawned";
+    else if (r < 3600000) color = "soon";
 
     const div = document.createElement("div");
     div.className = "boss";
-
     div.innerHTML = `
       <strong>${boss.name}</strong> (Lv ${boss.level})<br>
-      <em>${boss.location}</em><br>
-
-      <div class="timer ${statusClass}">
-        ${remaining === null ? "Not killed yet" : formatTime(remaining)}
+      <em>${boss.location}</em>
+      <div class="timer ${color}">
+        ${r === null ? "Not killed yet" : format(r)}
       </div>
-
       ${isAdmin ? `
         <button onclick='markKilled(${JSON.stringify(boss)})'>Boss Killed</button>
         <button onclick='resetBoss("${boss.name}")'>Reset</button>
       ` : ""}
     `;
-
     list.appendChild(div);
   });
 }
 
-render();
+/* ================= START ================= */
+bosses.forEach(listenBoss);
 setInterval(render, 1000);
 </script>
 
+
 </body>
 </html>
+
 
