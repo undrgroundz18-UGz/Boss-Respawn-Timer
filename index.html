@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boss Respawn Timer</title>
+<style>
+body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px; }
+h1 { text-align:center; }
+.boss { background:#222; border-radius:8px; padding:15px; margin:15px auto; max-width:600px; }
+label { display:block; margin-top:8px; }
+input { padding:6px; width:100%; margin-top:4px; }
+button { margin-top:10px; padding:8px 12px; cursor:pointer; }
+.timer { margin-top:10px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h1>Boss Respawn Timer</h1>
+<div id="bossList"></div>
+
+<script>
+// ================= CONFIG =================
+let bosses = [
+  { name: "Venatus", minRespawn: 10, maxRespawn: 10, killedAt: null, nextSpawn: null },
+  { name: "Viorent", minRespawn: 10, maxRespawn: 10, killedAt: null, nextSpawn: null }
+  { name: "Ego", minRespawn: 21, maxRespawn: 21, killedAt: null, nextSpawn: null }
+  { name: "Livera", minRespawn: 24, maxRespawn: 24, killedAt: null, nextSpawn: null }
+  { name: "Araneo", minRespawn: 24, maxRespawn: 24, killedAt: null, nextSpawn: null }
+  { name: "Undomiel", minRespawn: 24, maxRespawn: 24, killedAt: null, nextSpawn: null }
+  { name: "Lady Dalia", minRespawn: 18, maxRespawn: 18, killedAt: null, nextSpawn: null }
+  { name: "General Aquleus", minRespawn: 29, maxRespawn: 29, killedAt: null, nextSpawn: null }
+  { name: "Amentis", minRespawn: 29, maxRespawn: 29, killedAt: null, nextSpawn: null }
+  { name: "Baron Braudmore", minRespawn: 32, maxRespawn: 32, killedAt: null, nextSpawn: null }
+  { name: "Wanitas", minRespawn: 48, maxRespawn: 48, killedAt: null, nextSpawn: null }
+  { name: "Metus", minRespawn: 48, maxRespawn: 48, killedAt: null, nextSpawn: null }
+  { name: "Duplican", minRespawn: 48, maxRespawn: 48, killedAt: null, nextSpawn: null }
+  { name: "Shuliar", minRespawn: 35, maxRespawn: 35, killedAt: null, nextSpawn: null }
+  { name: "Gareth", minRespawn: 32, maxRespawn: 32, killedAt: null, nextSpawn: null }
+  { name: "Titore", minRespawn: 37, maxRespawn: 37, killedAt: null, nextSpawn: null }
+  { name: "Larba", minRespawn: 35, maxRespawn: 35, killedAt: null, nextSpawn: null }
+  { name: "Catena", minRespawn: 35, maxRespawn: 35, killedAt: null, nextSpawn: null }
+  { name: "Secreta", minRespawn: 62, maxRespawn: 62, killedAt: null, nextSpawn: null }
+  { name: "Ordo", minRespawn: 62, maxRespawn: 62, killedAt: null, nextSpawn: null }
+  { name: "Asta", minRespawn: 62, maxRespawn: 62, killedAt: null, nextSpawn: null }
+  { name: "Supore", minRespawn: 62, maxRespawn: 62, killedAt: null, nextSpawn: null }
+
+];
+
+// ================= LOAD / SAVE =================
+function saveData() {
+  localStorage.setItem('bossRespawnData', JSON.stringify(bosses));
+}
+
+function loadData() {
+  const saved = localStorage.getItem('bossRespawnData');
+  if (saved) bosses = JSON.parse(saved);
+}
+
+// ================= LOGIC =================
+function markKilled(index) {
+  const now = new Date();
+  bosses[index].killedAt = now.toISOString();
+
+  const minMs = bosses[index].minRespawn * 60 * 60 * 1000;
+  const maxMs = bosses[index].maxRespawn * 60 * 60 * 1000;
+  const randomRespawn = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+
+  bosses[index].nextSpawn = new Date(now.getTime() + randomRespawn).toISOString();
+  saveData();
+  render();
+}
+
+function timeRemaining(dateStr) {
+  if (!dateStr) return "Not killed yet";
+  const diff = new Date(dateStr) - new Date();
+  if (diff <= 0) return "SPAWNED / CHECK NOW";
+
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return `${h}h ${m}m ${s}s`;
+}
+
+// ================= UI =================
+function render() {
+  const container = document.getElementById('bossList');
+  container.innerHTML = "";
+
+  bosses.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.className = 'boss';
+    div.innerHTML = `
+      <strong>${b.name}</strong><br>
+      Respawn Range: ${b.minRespawn}h – ${b.maxRespawn}h
+      <label>Min Respawn (hrs)</label>
+      <input type="number" value="${b.minRespawn}" onchange="bosses[${i}].minRespawn=this.value;saveData()">
+      <label>Max Respawn (hrs)</label>
+      <input type="number" value="${b.maxRespawn}" onchange="bosses[${i}].maxRespawn=this.value;saveData()">
+      <button onclick="markKilled(${i})">Boss Killed</button>
+      <div class="timer">Next Spawn In: ${timeRemaining(b.nextSpawn)}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ================= INIT =================
+loadData();
+render();
+setInterval(render, 1000);
+</script>
+
+</body>
+</html>
