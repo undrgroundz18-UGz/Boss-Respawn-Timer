@@ -25,15 +25,20 @@ h1 {
   max-width: 600px;
 }
 
-button {
-  margin-top: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
 .timer {
   margin-top: 10px;
   font-weight: bold;
+}
+
+.spawned { color: #4caf50; }
+.soon { color: #ffc107; }
+.wait { color: #f44336; }
+
+button {
+  margin-top: 8px;
+  margin-right: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -62,12 +67,7 @@ const bosses = [
 ];
 
 // ================== STORAGE ==================
-let bossData = {};
-
-function loadData() {
-  const saved = localStorage.getItem("bossData");
-  bossData = saved ? JSON.parse(saved) : {};
-}
+let bossData = JSON.parse(localStorage.getItem("bossData") || "{}");
 
 function saveData() {
   localStorage.setItem("bossData", JSON.stringify(bossData));
@@ -75,51 +75,70 @@ function saveData() {
 
 // ================== TIMER LOGIC ==================
 function markKilled(boss) {
-  const nextSpawn = Date.now() + boss.respawnHours * 3600000;
-  bossData[boss.name] = nextSpawn;
+  bossData[boss.name] = Date.now() + boss.respawnHours * 3600000;
   saveData();
 }
 
-function timeRemaining(timestamp) {
-  if (!timestamp) return "Not killed yet";
+function resetBoss(name) {
+  delete bossData[name];
+  saveData();
+}
 
-  const diff = timestamp - Date.now();
-  if (diff <= 0) return "SPAWNED / CHECK NOW";
+function getRemaining(ts) {
+  if (!ts) return null;
+  return ts - Date.now();
+}
 
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-
+function formatTime(ms) {
+  if (ms <= 0) return "SPAWNED / CHECK NOW";
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
   return `${h}h ${m}m ${s}s`;
 }
 
-// ================== UI RENDER ==================
+// ================== SORTING ==================
+function sortedBosses() {
+  return [...bosses].sort((a, b) => {
+    const ta = getRemaining(bossData[a.name]) ?? -1;
+    const tb = getRemaining(bossData[b.name]) ?? -1;
+    return ta - tb;
+  });
+}
+
+// ================== UI ==================
 function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
-  bosses.forEach(boss => {
+  sortedBosses().forEach(boss => {
+    const remaining = getRemaining(bossData[boss.name]);
+    let statusClass = "wait";
+
+    if (remaining === null || remaining <= 0) statusClass = "spawned";
+    else if (remaining < 3600000) statusClass = "soon";
+
     const div = document.createElement("div");
     div.className = "boss";
 
     div.innerHTML = `
       <strong>${boss.name}</strong> (Lv ${boss.level})<br>
       <em>${boss.location}</em><br>
-      Respawn: ${boss.respawnHours} hours
 
-      <div class="timer">
-        Next Spawn In: ${timeRemaining(bossData[boss.name])}
+      <div class="timer ${statusClass}">
+        ${remaining === null ? "Not killed yet" : formatTime(remaining)}
       </div>
 
-      ${isAdmin ? `<button onclick='markKilled(${JSON.stringify(boss)})'>Boss Killed</button>` : ""}
+      ${isAdmin ? `
+        <button onclick='markKilled(${JSON.stringify(boss)})'>Boss Killed</button>
+        <button onclick='resetBoss("${boss.name}")'>Reset</button>
+      ` : ""}
     `;
 
     list.appendChild(div);
   });
 }
 
-// ================== INIT ==================
-loadData();
 render();
 setInterval(render, 1000);
 </script>
