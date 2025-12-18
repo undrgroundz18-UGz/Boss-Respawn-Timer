@@ -24,6 +24,11 @@ const ADMIN_PASSWORD = "CHANGE_THIS_PASSWORD";
 
 const bosses = [
   { name: "Venatus", respawnHours: 10, nextSpawn: null },
+  <div class="boss">
+  <h3>Venatus</h3>
+  <p>Next spawn: <span id="dragon-timer">--:--</span></p>
+  <button onclick="markBossKilled('Vena')">Mark as Killed</button>
+</div>
   { name: "Viorent", respawnHours: 10, nextSpawn: null },
   { name: "Ego", respawnHours: 21, nextSpawn: null },
   { name: "Livera", respawnHours: 24, nextSpawn: null },
@@ -114,3 +119,4 @@ setInterval(render, 1000);
 
 </body>
 </html>
+
