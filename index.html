@@ -58,7 +58,7 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* 🔥 FIREBASE CONFIG — REPLACE WITH YOUR OWN 🔥 */
+/* FIREBASE CONFIG — REPLACE WITH YOUR OWN */
 const firebaseConfig = {
   apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain: "boss-respawn-timer.firebaseapp.com",
@@ -94,13 +94,10 @@ let bossData = {};
 /* ================= FIREBASE LISTENERS ================= */
 function listenBoss(boss) {
   const ref = doc(db, "bosses", boss.name);
-  
-  // Listen for changes in real-time
   onSnapshot(ref, snap => {
     if (snap.exists()) {
       bossData[boss.name] = snap.data();
     } else {
-      // If doc doesn't exist, create it with default values
       setDoc(ref, { lastKill: 0, respawnMs: boss.respawnHours * 3600000 });
       bossData[boss.name] = { lastKill: 0, respawnMs: boss.respawnHours * 3600000 };
     }
@@ -109,7 +106,8 @@ function listenBoss(boss) {
 }
 
 /* ================= ACTIONS ================= */
-async function markKilled(boss) {
+async function markKilled(bossName) {
+  const boss = bosses.find(b => b.name === bossName);
   const ref = doc(db, "bosses", boss.name);
   const snap = await getDoc(ref);
   
@@ -120,8 +118,8 @@ async function markKilled(boss) {
   }
 }
 
-async function resetBoss(name) {
-  const ref = doc(db, "bosses", name);
+async function resetBoss(bossName) {
+  const ref = doc(db, "bosses", bossName);
   await setDoc(ref, { lastKill: 0, respawnMs: 0 }, { merge: true });
 }
 
@@ -145,27 +143,75 @@ function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
+  // Create table
+  const table = document.createElement("table");
+  table.style.width = "100%";
+  table.style.borderCollapse = "collapse";
+
+  // Table header
+  const header = document.createElement("tr");
+  ["Name", "Status", "Respawn", "Countdown"].forEach(text => {
+    const th = document.createElement("th");
+    th.innerText = text;
+    th.style.borderBottom = "1px solid #eee";
+    th.style.padding = "8px";
+    th.style.textAlign = "left";
+    table.appendChild(th);
+  });
+  table.appendChild(header);
+
+  // Table rows
   bosses.forEach(boss => {
     const r = remaining(boss);
+    let status = "Waiting";
     let color = "wait";
-    if (r === null || r <= 0) color = "spawned";
-    else if (r < 3600000) color = "soon";
+    if (r === null || r <= 0) { status = "Spawned"; color = "spawned"; }
+    else if (r < 3600000) { status = "Soon"; color = "soon"; }
 
-    const div = document.createElement("div");
-    div.className = "boss";
-    div.innerHTML = `
-      <strong>${boss.name}</strong> (Lv ${boss.level})<br>
-      <em>${boss.location}</em>
-      <div class="timer ${color}">
-        ${r === null ? "Not killed yet" : format(r)}
-      </div>
-      ${isAdmin ? `
-        <button onclick='markKilled(${JSON.stringify(boss)})'>Boss Killed</button>
-        <button onclick='resetBoss("${boss.name}")'>Reset</button>
-      ` : ""}
-    `;
-    list.appendChild(div);
+    const tr = document.createElement("tr");
+
+    // Name + level
+    const tdName = document.createElement("td");
+    tdName.innerText = `${boss.name} (Lv ${boss.level})\n${boss.location}`;
+    tdName.style.padding = "8px";
+    tr.appendChild(tdName);
+
+    // Status
+    const tdStatus = document.createElement("td");
+    tdStatus.innerText = status;
+    tdStatus.style.padding = "8px";
+    tdStatus.style.color = color === "spawned" ? "#4caf50" : color === "soon" ? "#ffc107" : "#f44336";
+    tr.appendChild(tdStatus);
+
+    // Respawn (hours)
+    const tdRespawn = document.createElement("td");
+    tdRespawn.innerText = boss.respawnHours + "h";
+    tdRespawn.style.padding = "8px";
+    tr.appendChild(tdRespawn);
+
+    // Countdown + buttons
+    const tdCountdown = document.createElement("td");
+    tdCountdown.style.padding = "8px";
+    tdCountdown.innerHTML = r === null ? "Not killed yet" : format(r);
+    if (isAdmin) {
+      const killBtn = document.createElement("button");
+      killBtn.innerText = "Boss Killed";
+      killBtn.style.marginRight = "5px";
+      killBtn.onclick = () => markKilled(boss.name);
+      tdCountdown.appendChild(document.createElement("br"));
+      tdCountdown.appendChild(killBtn);
+
+      const resetBtn = document.createElement("button");
+      resetBtn.innerText = "Reset";
+      resetBtn.onclick = () => resetBoss(boss.name);
+      tdCountdown.appendChild(resetBtn);
+    }
+    tr.appendChild(tdCountdown);
+
+    table.appendChild(tr);
   });
+
+  list.appendChild(table);
 }
 
 /* ================= START ================= */
@@ -174,8 +220,10 @@ setInterval(render, 1000);
 </script>
 
 
+
 </body>
 </html>
+
 
 
 
