@@ -54,7 +54,6 @@ import {
   getFirestore,
   doc,
   setDoc,
-  getDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -76,16 +75,16 @@ const isAdmin = new URLSearchParams(window.location.search).get("admin") === "1"
 
 /* ================= BOSSES ================= */
 const bosses = [
-  { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10 },
-  { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10 },
-  { name: "Ego", level: 70, location: "Ulan Canyon", respawnHours: 21 },
-  { name: "Livera", level: 75, location: "Protectors Ruins", respawnHours: 24 },
-  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24 },
-  { name: "Undomiel", level: 80, location: "Secret Lab", respawnHours: 24 },
-  { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18 },
-  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29 },
-  { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29 },
-  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32 }
+  { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10, type: "Daily" },
+  { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10, type: "Daily" },
+  { name: "Ego", level: 70, location: "Ulan Canyon", respawnHours: 21, type: "Daily" },
+  { name: "Livera", level: 75, location: "Protectors Ruins", respawnHours: 24, type: "Daily" },
+  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24, type: "Daily" },
+  { name: "Undomiel", level: 80, location: "Secret Lab", respawnHours: 24, type: "Daily" },
+  { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18, type: "Daily" },
+  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29, type: "Weekly" },
+  { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29, type: "Weekly" },
+  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32, type: "Weekly" }
 ];
 
 /* ================= DATA ================= */
@@ -109,13 +108,7 @@ function listenBoss(boss) {
 async function markKilled(bossName) {
   const boss = bosses.find(b => b.name === bossName);
   const ref = doc(db, "bosses", boss.name);
-  const snap = await getDoc(ref);
-  
-  if (!snap.exists()) {
-    await setDoc(ref, { lastKill: Date.now(), respawnMs: boss.respawnHours * 3600000 });
-  } else {
-    await setDoc(ref, { lastKill: Date.now(), respawnMs: boss.respawnHours * 3600000 }, { merge: true });
-  }
+  await setDoc(ref, { lastKill: Date.now(), respawnMs: boss.respawnHours * 3600000 }, { merge: true });
 }
 
 async function resetBoss(bossName) {
@@ -143,62 +136,72 @@ function render() {
   const list = document.getElementById("bossList");
   list.innerHTML = "";
 
-  // Create table
   const table = document.createElement("table");
   table.style.width = "100%";
   table.style.borderCollapse = "collapse";
 
   // Table header
   const header = document.createElement("tr");
-  ["Name", "Status", "Respawn", "Countdown"].forEach(text => {
+  ["Name", "Type", "Status", "Respawn", "Countdown"].forEach(text => {
     const th = document.createElement("th");
     th.innerText = text;
     th.style.borderBottom = "1px solid #eee";
     th.style.padding = "8px";
     th.style.textAlign = "left";
-    table.appendChild(th);
+    header.appendChild(th);
   });
   table.appendChild(header);
 
-  // Table rows
-  bosses.forEach(boss => {
+  // Sort bosses by remaining time
+  const sorted = [...bosses].sort((a, b) => {
+    const ra = remaining(a) ?? Infinity;
+    const rb = remaining(b) ?? Infinity;
+    return ra - rb;
+  });
+
+  // Add row
+  function addRow(boss) {
     const r = remaining(boss);
     let status = "Waiting";
-    let color = "wait";
-    if (r === null || r <= 0) { status = "Spawned"; color = "spawned"; }
-    else if (r < 3600000) { status = "Soon"; color = "soon"; }
+    let color = "red"; // killed
+    if (r === null || r <= 0) { status = "Spawned Today"; color = "green"; }
+    else if (r < 3600000) { status = "Almost Spawn"; color = "orange"; }
 
     const tr = document.createElement("tr");
 
-    // Name + level
     const tdName = document.createElement("td");
     tdName.innerText = `${boss.name} (Lv ${boss.level})\n${boss.location}`;
     tdName.style.padding = "8px";
     tr.appendChild(tdName);
 
-    // Status
+    const tdType = document.createElement("td");
+    tdType.innerText = boss.type;
+    tdType.style.padding = "8px";
+    tr.appendChild(tdType);
+
     const tdStatus = document.createElement("td");
     tdStatus.innerText = status;
     tdStatus.style.padding = "8px";
-    tdStatus.style.color = color === "spawned" ? "#4caf50" : color === "soon" ? "#ffc107" : "#f44336";
+    tdStatus.style.color = color;
     tr.appendChild(tdStatus);
 
-    // Respawn (hours)
     const tdRespawn = document.createElement("td");
     tdRespawn.innerText = boss.respawnHours + "h";
     tdRespawn.style.padding = "8px";
     tr.appendChild(tdRespawn);
 
-    // Countdown + buttons
     const tdCountdown = document.createElement("td");
     tdCountdown.style.padding = "8px";
-    tdCountdown.innerHTML = r === null ? "Not killed yet" : format(r);
+    tdCountdown.innerText = r === null ? "Not killed yet" : format(r);
+
     if (isAdmin) {
+      const br = document.createElement("br");
+      tdCountdown.appendChild(br);
+
       const killBtn = document.createElement("button");
       killBtn.innerText = "Boss Killed";
       killBtn.style.marginRight = "5px";
       killBtn.onclick = () => markKilled(boss.name);
-      tdCountdown.appendChild(document.createElement("br"));
       tdCountdown.appendChild(killBtn);
 
       const resetBtn = document.createElement("button");
@@ -206,10 +209,13 @@ function render() {
       resetBtn.onclick = () => resetBoss(boss.name);
       tdCountdown.appendChild(resetBtn);
     }
-    tr.appendChild(tdCountdown);
 
+    tr.appendChild(tdCountdown);
     table.appendChild(tr);
-  });
+  }
+
+  // Render all
+  sorted.forEach(addRow);
 
   list.appendChild(table);
 }
@@ -223,6 +229,7 @@ setInterval(render, 1000);
 
 </body>
 </html>
+
 
 
 
