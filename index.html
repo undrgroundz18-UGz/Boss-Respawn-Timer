@@ -21,6 +21,7 @@ body{
   box-shadow:0 25px 70px rgba(0,0,0,.8);
 }
 h1{text-align:center;margin-bottom:25px}
+
 .section{margin-top:30px}
 .section h2{
   font-size:13px;
@@ -28,9 +29,10 @@ h1{text-align:center;margin-bottom:25px}
   text-transform:uppercase;
   margin-bottom:10px
 }
+
 .boss{
   display:grid;
-  grid-template-columns:48px 1fr auto auto;
+  grid-template-columns: 1.6fr .9fr .9fr 1fr auto;
   gap:12px;
   padding:14px;
   border-radius:14px;
@@ -40,9 +42,22 @@ h1{text-align:center;margin-bottom:25px}
 .alive{background:linear-gradient(90deg,rgba(76,175,80,.22),transparent)}
 .soon{background:linear-gradient(90deg,rgba(255,193,7,.22),transparent)}
 .scheduled{background:linear-gradient(90deg,rgba(244,67,54,.22),transparent)}
-.icon{font-size:26px}
-.status{font-weight:bold;display:flex;align-items:center;gap:6px}
-.dot{width:10px;height:10px;border-radius:50%}
+.unknown{background:linear-gradient(90deg,rgba(119,119,119,.22),transparent)}
+
+.status{
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%
+}
+
+small{color:#aaa}
+
 button{
   padding:6px 10px;
   background:#2b2b2b;
@@ -51,12 +66,33 @@ button{
   border-radius:6px;
   cursor:pointer
 }
+
+input, select{
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  font-size:14px;
+}
+.search-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 </style>
 </head>
 
 <body>
 <div class="app">
 <h1>Boss Respawn Timer</h1>
+
+<!-- Search & Filter -->
+<div class="search-filter">
+  <input id="search" type="text" placeholder="Search boss...">
+  <select id="filter">
+    <option value="">All Statuses</option>
+    <option value="Alive">Alive</option>
+    <option value="Soon">Soon</option>
+    <option value="Scheduled">Scheduled</option>
+    <option value="Unknown">Unknown</option>
+  </select>
+</div>
+
 <div id="list"></div>
 </div>
 
@@ -66,12 +102,12 @@ import {
   getFirestore, doc, setDoc, onSnapshot, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ================= CONFIG ================= */
+/* ========= CONFIG ========= */
 const DISCORD_WEBHOOK =
 "https://discord.com/api/webhooks/1451506631799083008/hGDTtPR4n3fAYR_6bC6qHyONs20YajvkmFxW56BrX09yI7HAoJ0zJOnORYwOU0QG6uZm";
 const DISCORD_MENTION = "@here";
 
-/* ================= FIREBASE ================= */
+/* ========= FIREBASE ========= */
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
@@ -79,25 +115,25 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-/* ================= ADMIN ================= */
+/* ========= ADMIN ========= */
 let isAdmin=false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Password")==="UGzAdmin") isAdmin=true;
 }
 
-/* ================= BOSSES ================= */
-const bosses = [
-{n:"Venatus",h:10,l:"-"},
-{n:"Viorent",h:10,l:"-"},
-{n:"Livera",h:24,l:"-"},
-{n:"Araneo",h:24,l:"-"},
-{n:"Undomiel",h:24,l:"-"},
-{n:"Lady Dalia",h:18,l:"-"},
-{n:"Ego",h:21,l:"-"},
+/* ========= BOSSES ========= */
+const bosses=[
+{n:"Venatus",h:10,l:"Corrupted Basin"},
+{n:"Viorent",h:10,l:"Crescent Lake"},
+{n:"Livera",h:24,l:"Protector's Ruins"},
+{n:"Araneo",h:24,l:"Land of Tyriosa 1F"},
+{n:"Undomiel",h:24,l:"Secret Lab"},
+{n:"Lady Dalia",h:18,l:"Twilight Hill"},
+{n:"Ego",h:21,l:"Ulan Canyon"},
 {n:"Amentis",h:29,l:"Land of Glory"},
-{n:"General Aquleus",h:29,l:"-"},
+{n:"General Aquleus",h:29,l:"Land of Tyriosa 2F"},
 {n:"Gareth",h:32,l:"Deadman 1"},
-{n:"Baron Braudmore",h:32,l:"-"},
+{n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
 {n:"Catena",h:35,l:"Deadman 3"},
 {n:"Shuliar",h:35,l:"Ruins of War"},
 {n:"Larba",h:35,l:"Ruins of War"},
@@ -110,58 +146,40 @@ const bosses = [
 {n:"Asta",h:62,l:"Silvergrass Field"},
 {n:"Supore",h:62,l:"Silvergrass Field"},
 
-/* FIXED SCHEDULE */
 {n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
 {n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
-{n:"Auraq",d:"Friday",t:"22:00",l:"Garbana 2F"},
+{n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
 {n:"Auraq (Wed)",d:"Wednesday",t:"21:00",l:"Garbana 2F"},
 {n:"Chaiflock",d:"Saturday",t:"22:00",l:"Silvergrass Field"},
-{n:"Saphirus",d:"Sunday",t:"17:00",l:"-"},
+{n:"Saphirus (Sun)",d:"Sunday",t:"17:00",l:"-"},
 {n:"Saphirus (Tue)",d:"Tuesday",t:"11:30",l:"-"},
-{n:"Neutro",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
+{n:"Neutro (Tue)",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
 {n:"Neutro (Thu)",d:"Thursday",t:"11:30",l:"Desert of Scream / Ulan"},
-{n:"Thymele",d:"Monday",t:"19:00",l:"Twilight Hill"},
+{n:"Thymele (Mon)",d:"Monday",t:"19:00",l:"Twilight Hill"},
 {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
-{n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"}
+{n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
+
+{n:"Motti",u:true},
+{n:"Vevaeh",u:true},
+{n:"Icaruthia",u:true}
 ];
 
 let data={};
 
-/* ================= HELPERS ================= */
-function discord(msg){
- fetch(DISCORD_WEBHOOK,{
-  method:"POST",
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({content:`${DISCORD_MENTION} ${msg}`})
- });
-}
-
+/* ========= HELPERS ========= */
 function nextFixed(day,time){
  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
  let now=new Date();
- let target=new Date();
- target.setHours(...time.split(":").map(Number),0,0);
+ let t=new Date();
+ t.setHours(...time.split(":").map(Number),0,0);
  let diff=(days.indexOf(day)-now.getDay()+7)%7;
- if(diff===0 && target<now) diff=7;
- target.setDate(now.getDate()+diff);
- return target-now;
+ if(diff===0 && t<now) diff=7;
+ t.setDate(now.getDate()+diff);
+ return t-now;
 }
 
-/* ================= LISTEN ================= */
-bosses.forEach(b=>{
- const ref=doc(db,"bosses",b.n);
- onSnapshot(ref,s=>{
-  if(!s.exists()){
-   setDoc(ref,{lastKill:0,alert:""});
-   return;
-  }
-  data[b.n]=s.data();
-  render();
- });
-});
-
-/* ================= STATUS ================= */
-function status(b){
+function getStatus(b){
+ if(b.u) return ["Unknown","unknown","#777"];
  if(b.h){
   const d=data[b.n];
   if(!d||d.lastKill===0) return ["Alive","alive","#4caf50"];
@@ -177,44 +195,80 @@ function status(b){
  }
 }
 
-/* ================= KILL ================= */
-function kill(b){
- updateDoc(doc(db,"bosses",b.n),{
-  lastKill:Date.now(),
-  alert:""
- });
+function formatCountdown(b){
+ if(b.u) return "-";
+ if(b.h){
+  const d=data[b.n];
+  if(!d||d.lastKill===0) return "-";
+  let r=Math.max(0,d.lastKill+b.h*3600000-Date.now());
+  return Math.floor(r/3600000)+"h "+Math.floor(r%3600000/60000)+"m";
+ }
+ return b.d+" "+b.t;
 }
 
-/* ================= RENDER ================= */
+/* ========= FIREBASE ========= */
+bosses.forEach(b=>{
+ if(b.u) return;
+ const ref=doc(db,"bosses",b.n);
+ onSnapshot(ref,s=>{
+  if(!s.exists()) setDoc(ref,{lastKill:0});
+  else data[b.n]=s.data();
+  render();
+ });
+});
+
+/* ========= ACTION ========= */
+function kill(b){
+ updateDoc(doc(db,"bosses",b.n),{lastKill:Date.now()});
+}
+
+/* ========= SEARCH & FILTER ========= */
+const searchInput=document.getElementById('search');
+const filterSelect=document.getElementById('filter');
+
+let searchText='';
+let filterStatus='';
+
+searchInput.addEventListener('input', e => { searchText=e.target.value.toLowerCase(); render(); });
+filterSelect.addEventListener('change', e => { filterStatus=e.target.value; render(); });
+
+/* ========= RENDER ========= */
 function render(){
  const root=document.getElementById("list");
  root.innerHTML="";
- ["Alive","Soon","Scheduled"].forEach(sec=>{
-  const list=bosses.filter(b=>status(b)[0]===sec);
+ ["Alive","Soon","Scheduled","Unknown"].forEach(sec=>{
+  let list=bosses.filter(b=>getStatus(b)[0]===sec);
+  
+  if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
+  if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
+  
   if(!list.length) return;
+  
   const s=document.createElement("div");
   s.className="section";
   s.innerHTML=`<h2>${sec}</h2>`;
+  
   list.forEach(b=>{
-   const [t,c,col]=status(b);
-   const e=document.createElement("div");
-   e.className=`boss ${c}`;
-   e.innerHTML=`
-    <div class="icon">⚔️</div>
-    <div><strong>${b.n}</strong><br>${b.l}</div>
-    <div class="status" style="color:${col}">
-      <span class="dot" style="background:${col}"></span>${t}
-    </div>
-    <div>${b.h?b.h+"h":b.d+" "+b.t}</div>
-   `;
-   if(isAdmin){
-    const btn=document.createElement("button");
-    btn.textContent="Killed";
-    btn.onclick=()=>kill(b);
-    e.appendChild(btn);
-   }
-   s.appendChild(e);
+    const [t,c,col]=getStatus(b);
+    const e=document.createElement('div');
+    e.className=`boss ${c}`;
+    e.innerHTML=`
+      <div><strong>${b.n}</strong><br><small>${b.l||"-"}</small></div>
+      <div class="status" style="color:${col}">
+        <span class="dot" style="background:${col}"></span>${t}
+      </div>
+      <div>${b.h?b.h+"h":b.d?b.d+" "+b.t:"-"}</div>
+      <div>${formatCountdown(b)}</div>
+    `;
+    if(isAdmin && !b.u){
+      const btn=document.createElement("button");
+      btn.textContent="Killed";
+      btn.onclick=()=>kill(b);
+      e.appendChild(btn);
+    }
+    s.appendChild(e);
   });
+  
   root.appendChild(s);
  });
 }
