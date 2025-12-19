@@ -51,8 +51,8 @@ h1{text-align:center;margin-bottom:25px}
   gap:6px
 }
 .dot{
-  width:10px;
-  height:10px;
+  width:12px;
+  height:12px;
   border-radius:50%
 }
 
@@ -81,7 +81,6 @@ input, select{
 <div class="app">
 <h1>Boss Respawn Timer</h1>
 
-<!-- Search & Filter -->
 <div class="search-filter">
   <input id="search" type="text" placeholder="Search boss...">
   <select id="filter">
@@ -100,10 +99,6 @@ input, select{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ========= CONFIG ========= */
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1451506631799083008/hGDTtPR4n3fAYR_6bC6qHyONs20YajvkmFxW56BrX09yI7HAoJ0zJOnORYwOU0QG6uZm";
-
-/* ========= FIREBASE ========= */
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
@@ -111,13 +106,11 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-/* ========= ADMIN ========= */
 let isAdmin=false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
-  if(prompt("Password")==="UGzAdmin") isAdmin=true;
+  if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
-/* ========= BOSSES ========= */
 const bosses=[
 {n:"Venatus",h:10,l:"Corrupted Basin"},
 {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -142,6 +135,7 @@ const bosses=[
 {n:"Asta",h:62,l:"Silvergrass Field"},
 {n:"Supore",h:62,l:"Silvergrass Field"},
 
+// Weekly/Specific
 {n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
 {n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
 {n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
@@ -155,72 +149,85 @@ const bosses=[
 {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
 {n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
 
-// KRANSIA WORLD BOSSES
-{n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",kr:true},
-{n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",kr:true},
-{n:"Nevaeh",d:"Sunday",t:"22:00",kr:true}
+// KRANSIA BOSSES (2 timers for multiple spawn)
+{n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",l:"Kransia",kr:true},
+{n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",l:"Kransia",kr:true},
+{n:"Nevaeh",d:"Sunday",t:"22:00",l:"Kransia",kr:true}
 ];
 
 let data={};
 
-/* ========= HELPERS ========= */
 function nextFixed(day,time){
- const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
- let now=new Date();
- let t=new Date();
- t.setHours(...time.split(":").map(Number),0,0);
- let diff=(days.indexOf(day)-now.getDay()+7)%7;
- if(diff===0 && t<now) diff=7;
- t.setDate(now.getDate()+diff);
- return t-now;
+  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  let now=new Date();
+  let t=new Date();
+  t.setHours(...time.split(":").map(Number),0,0);
+  let diff=(days.indexOf(day)-now.getDay()+7)%7;
+  if(diff===0 && t<now) diff=7;
+  t.setDate(now.getDate()+diff);
+  return t-now;
 }
 
 function getStatus(b){
- if(b.kr) return ["Unknown","unknown","#777"];
- if(b.h){
-  const d=data[b.n];
-  const lastKill = d?.lastKill || 0;
-  const r=lastKill + b.h*3600000 - Date.now();
-  if(r<=0) return ["Alive","alive","#4caf50"];
-  if(r<=18000000) return ["Soon","soon","#ffc107"];
-  return ["Scheduled","scheduled","#f44336"];
- }else{
-  const r=nextFixed(b.d,b.t);
-  if(r<=0) return ["Alive","alive","#4caf50"];
-  if(r<=18000000) return ["Soon","soon","#ffc107"];
-  return ["Scheduled","scheduled","#f44336"];
- }
+  if(b.kr){
+    let next1=nextFixed(b.d,b.t);
+    let next2=b.d2?nextFixed(b.d2,b.t2):Infinity;
+    let nextSpawn=Math.min(next1,next2);
+    if(nextSpawn<=0) return ["Alive","alive","#4caf50"];
+    if(nextSpawn<=18000000) return ["Soon","soon","#ffc107"];
+    return ["Scheduled","scheduled","#f44336"];
+  }
+  if(b.h){
+    const lastKill=data[b.n]?.lastKill||0;
+    const r=lastKill+b.h*3600000-Date.now();
+    if(r<=0) return ["Alive","alive","#4caf50"];
+    if(r<=18000000) return ["Soon","soon","#ffc107"];
+    return ["Scheduled","scheduled","#f44336"];
+  }
+  return ["Unknown","unknown","#777"];
 }
 
 function formatCountdown(b){
-  if(b.kr) return "-";
-  if(b.h){
-    const d=data[b.n];
-    const lastKill = d?.lastKill || 0;
-    const r=Math.max(0,lastKill + b.h*3600000 - Date.now());
-    if(r<=0) return "Alive";
-    return Math.floor(r/3600000)+"h "+Math.floor(r%3600000/60000)+"m";
+  if(b.kr){
+    let next1=nextFixed(b.d,b.t);
+    let next2=b.d2?nextFixed(b.d2,b.t2):Infinity;
+    let nextSpawn=Math.min(next1,next2);
+    return nextSpawn<=0?"Alive":Math.floor(nextSpawn/3600000)+"h "+Math.floor(nextSpawn%3600000/60000)+"m";
   }
-  return b.d+" "+b.t;
+  if(b.h){
+    const lastKill=data[b.n]?.lastKill||0;
+    const r=Math.max(0,lastKill+b.h*3600000-Date.now());
+    return r<=0?"Alive":Math.floor(r/3600000)+"h "+Math.floor(r%3600000/60000)+"m";
+  }
+  return "-";
 }
 
-/* ========= FIREBASE INIT ========= */
 bosses.forEach(b=>{
   if(b.kr) return;
   const ref=doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0},{merge:true}); // initialize missing
+  setDoc(ref,{lastKill:0},{merge:true}); 
   onSnapshot(ref,s=>{
     data[b.n]=s.exists()?s.data():{lastKill:0};
     render();
   });
 });
 
-/* ========= ACTION ========= */
 window.killBoss=(bossName)=>{
-  updateDoc(doc(db,"bosses",bossName),{lastKill:Date.now()});
+  let input=prompt("Enter boss death time (YYYY-MM-DD HH:MM) or leave empty for current time:");
+  let time=Date.now();
+  if(input){
+    let d=new Date(input);
+    if(!isNaN(d)) time=d.getTime();
+  }
+  updateDoc(doc(db,"bosses",bossName),{lastKill:time});
 };
 
-/* ========= SEARCH & FILTER ========= */
+window.resetBoss=(bossName)=>{
+  if(confirm("Reset boss last kill time?")){
+    updateDoc(doc(db,"bosses",bossName),{lastKill:0});
+  }
+};
+
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
 let searchText='';
@@ -228,7 +235,6 @@ let filterStatus='';
 searchInput.addEventListener('input', e => { searchText=e.target.value.toLowerCase(); render(); });
 filterSelect.addEventListener('change', e => { filterStatus=e.target.value; render(); });
 
-/* ========= RENDER ========= */
 function render(){
  const root=document.getElementById("list");
  root.innerHTML="";
@@ -249,9 +255,9 @@ function render(){
     e.innerHTML=`
       <div style="display:flex;align-items:center;gap:10px;">
         <strong>${b.n}</strong>
-        ${isAdmin && !b.kr?'<button onclick="killBoss(\''+b.n+'\')">Killed</button>':''}
+        ${isAdmin && !b.kr?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
       </div>
-      <small>${b.l||b.kr?"Kransia World":""}</small>
+      <small>${b.l||"-"}</small>
       <div class="status" style="color:${col}">
         <span class="dot" style="background:${col}"></span>${t}
       </div>
