@@ -5,79 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
 <style>
-body {
-  font-family: system-ui, Arial, sans-serif;
-  background: #111;
-  color: #eee;
-  padding: 30px 10px;
-}
-.app {
-  max-width: 1200px;
-  margin: auto;
-  background: #1e1e1e;
-  border-radius: 22px;
-  padding: 28px;
-  box-shadow: 0 25px 70px rgba(0,0,0,.8);
-}
+body { font-family: system-ui, Arial, sans-serif; background: #111; color: #eee; padding: 30px 10px; }
+.app { max-width: 1200px; margin: auto; background: #1e1e1e; border-radius: 22px; padding: 28px; box-shadow: 0 25px 70px rgba(0,0,0,.8); }
 h1 { text-align: center; margin-bottom: 25px; color:#fff; }
-
 .section { margin-top: 30px; }
 .section h2 { font-size: 13px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
-
-.boss {
-  display: grid;
-  grid-template-columns: 1.6fr .9fr .9fr 1fr auto;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-  align-items: center;
-  background: linear-gradient(90deg, rgba(50,50,50,0.9), rgba(30,30,30,0.9));
-}
+.boss { display: grid; grid-template-columns: 1.6fr .9fr .9fr 1fr auto; gap: 12px; padding: 14px; border-radius: 14px; margin-bottom: 10px; align-items: center; background: linear-gradient(90deg, rgba(50,50,50,0.9), rgba(30,30,30,0.9)); }
 .alive { background: linear-gradient(90deg, rgba(76,175,80,0.22), rgba(30,30,30,0.9)); }
 .soon { background: linear-gradient(90deg, rgba(255,193,7,0.22), rgba(30,30,30,0.9)); }
 .scheduled { background: linear-gradient(90deg, rgba(244,67,54,0.22), rgba(30,30,30,0.9)); }
-
-.status {
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color:#eee;
-}
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
+.status { font-weight: bold; display: flex; align-items: center; gap: 6px; color:#eee; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
 small { color: #aaa; }
-
-button {
-  padding: 6px 10px;
-  background: #2b2b2b;
-  color: #eee;
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 6px;
-  cursor: pointer;
-}
-input, select {
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-}
-.search-filter {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
+button { padding: 6px 10px; background: #2b2b2b; color: #eee; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; cursor: pointer; }
+input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px; }
+.search-filter { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
 <div class="app">
 <h1>Boss Respawn Timer</h1>
-
 <div class="search-filter">
   <input id="search" type="text" placeholder="Search boss...">
   <select id="filter">
@@ -87,13 +34,12 @@ input, select {
     <option value="Scheduled">Scheduled</option>
   </select>
 </div>
-
 <div id="list"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
@@ -107,7 +53,7 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
-// All bosses
+// Boss definitions
 const bosses = [
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -132,135 +78,124 @@ const bosses = [
   {n:"Asta",h:62,l:"Silvergrass Field"},
   {n:"Supore",h:62,l:"Silvergrass Field"},
 
-  {n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
-  {n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
-  {n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
-  {n:"Auraq (Wed)",d:"Wednesday",t:"21:00",l:"Garbana 2F"},
-  {n:"Chaiflock",d:"Saturday",t:"22:00",l:"Silvergrass Field"},
-  {n:"Saphirus (Sun)",d:"Sunday",t:"17:00",l:"-"},
-  {n:"Saphirus (Tue)",d:"Tuesday",t:"11:30",l:"-"},
-  {n:"Neutro (Tue)",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
-  {n:"Neutro (Thu)",d:"Thursday",t:"11:30",l:"Desert of Scream / Ulan"},
-  {n:"Thymele (Mon)",d:"Monday",t:"19:00",l:"Twilight Hill"},
-  {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
-  {n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
+  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar",kr:false},
+  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1",kr:false},
+  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F",kr:false},
+  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field",kr:false},
+  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"-",kr:false},
+  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan",kr:false},
+  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill",kr:false},
+  {n:"Milavy",ft:["Saturday 15:00"],l:"Land of Tyriosa 3F",kr:false},
 
-  {n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",l:"Kransia",kr:true},
-  {n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",l:"Kransia",kr:true},
-  {n:"Nevaeh",d:"Sunday",t:"22:00",l:"Kransia",kr:true}
+  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia",kr:true},
+  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia",kr:true},
+  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia",kr:true}
 ];
 
 let data={};
 
-// Initialize Firestore field bosses
+// Initialize Firestore for all bosses
 bosses.forEach(b=>{
-  if(b.kr || b.d) return;
-  const ref=doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0},{merge:true});
+  const ref = doc(db,"bosses",b.n);
+  setDoc(ref,{lastKill:0,ft:b.ft,l:b.l,kr:b.kr||false},{merge:true});
   onSnapshot(ref,s=>{
-    data[b.n]=s.exists()?s.data():{lastKill:0};
+    data[b.n]=s.data();
     render();
   });
 });
 
-function nextSpawnMs(day,time){
+function parseTime(str){ // "Saturday 17:00"
+  const [day,time]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  let now=new Date();
-  let t=new Date();
-  t.setHours(...time.split(":").map(Number),0,0);
+  const now=new Date();
+  const t=new Date(); t.setHours(...time.split(":").map(Number),0,0);
   let diff=(days.indexOf(day)-now.getDay()+7)%7;
   if(diff===0 && t<now) diff=7;
   t.setDate(now.getDate()+diff);
-  return t-now;
+  return t;
+}
+
+function nextSpawn(b){
+  if(b.h){
+    return (data[b.n]?.lastKill||0)+b.h*3600000;
+  } else if(b.ft){
+    const nextTimes = b.ft.map(f=>parseTime(f).getTime());
+    const lastKill = data[b.n]?.lastKill || 0;
+    for(let t of nextTimes){
+      if(t>lastKill) return t;
+    }
+    return nextTimes[0]+7*24*3600000; // next week
+  }
+  return Date.now();
 }
 
 function getStatus(b){
-  if(b.kr || b.d){
-    let next1=nextSpawnMs(b.d,b.t);
-    let next2=b.d2?nextSpawnMs(b.d2,b.t2):Infinity;
-    let next=Math.min(next1,next2);
-    if(next<=0) return ["Alive","alive","#4caf50"];
-    if(next<=18000000) return ["Soon","soon","#ffc107"];
-    return ["Scheduled","scheduled","#f44336"];
-  }
-  if(b.h){
-    const r=(data[b.n]?.lastKill||0)+b.h*3600000-Date.now();
-    if(r<=0) return ["Alive","alive","#4caf50"];
-    if(r<=18000000) return ["Soon","soon","#ffc107"];
-    return ["Scheduled","scheduled","#f44336"];
-  }
+  const ns=nextSpawn(b);
+  const diff=ns-Date.now();
+  if(diff<=0) return ["Alive","alive","#4caf50"];
+  if(diff<=18000000) return ["Soon","soon","#ffc107"];
   return ["Scheduled","scheduled","#f44336"];
 }
 
 function formatCountdown(b){
-  if(b.kr || b.d){
-    let next1=nextSpawnMs(b.d,b.t);
-    let next2=b.d2?nextSpawnMs(b.d2,b.t2):Infinity;
-    let next=Math.min(next1,next2);
-    return next<=0?"Alive":Math.floor(next/3600000)+"h "+Math.floor(next%3600000/60000)+"m";
-  }
-  if(b.h){
-    const r=Math.max(0,(data[b.n]?.lastKill||0)+b.h*3600000-Date.now());
-    return r<=0?"Alive":Math.floor(r/3600000)+"h "+Math.floor(r%3600000/60000)+"m";
-  }
-  return "-";
+  const diff=nextSpawn(b)-Date.now();
+  if(diff<=0) return "Alive";
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  return `${h}h ${m}m`;
 }
 
 window.killBoss=(bossName)=>{
-  let input=prompt("Enter boss death time (YYYY-MM-DD HH:MM) or leave empty for current time:");
+  let input=prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
   let time=Date.now();
   if(input){
-    let d=new Date(input);
+    const d=new Date(input);
     if(!isNaN(d)) time=d.getTime();
   }
   updateDoc(doc(db,"bosses",bossName),{lastKill:time});
 };
 
 window.resetBoss=(bossName)=>{
-  if(confirm("Reset boss last kill time?")){
+  if(confirm("Reset boss last kill?")){
     updateDoc(doc(db,"bosses",bossName),{lastKill:0});
   }
 };
 
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
-let searchText='';
-let filterStatus='';
-searchInput.addEventListener('input', e => { searchText=e.target.value.toLowerCase(); render(); });
-filterSelect.addEventListener('change', e => { filterStatus=e.target.value; render(); });
+let searchText=''; let filterStatus='';
+searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase(); render();});
+filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
 
 function render(){
- const root=document.getElementById("list");
- root.innerHTML="";
- ["Alive","Soon","Scheduled"].forEach(sec=>{
-  let list=bosses.filter(b=>getStatus(b)[0]===sec);
-  if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
-  if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
-  if(!list.length) return;
-
-  const s=document.createElement("div");
-  s.className="section";
-  s.innerHTML=`<h2>${sec}</h2>`;
-
-  list.forEach(b=>{
-    const [t,c,col]=getStatus(b);
-    const e=document.createElement('div');
-    e.className=`boss ${c}`;
-    e.innerHTML=`
-      <div style="display:flex;align-items:center;gap:10px;">
-        <strong>${b.n}</strong>
-        ${isAdmin && !b.kr && !b.d?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
-      </div>
-      <small>${b.l||"-"}</small>
-      <div class="status" style="color:${col}"><span class="dot" style="background:${col}"></span>${t}</div>
-      <div>${b.h?b.h+"h":b.d?b.d+" "+b.t:"-"}</div>
-      <div>${formatCountdown(b)}</div>
-    `;
-    s.appendChild(e);
+  const root=document.getElementById("list");
+  root.innerHTML="";
+  ["Alive","Soon","Scheduled"].forEach(sec=>{
+    let list=bosses.filter(b=>getStatus(b)[0]===sec);
+    if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
+    if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
+    if(!list.length) return;
+    const s=document.createElement("div");
+    s.className="section";
+    s.innerHTML=`<h2>${sec}</h2>`;
+    list.forEach(b=>{
+      const [t,c,col]=getStatus(b);
+      const e=document.createElement("div");
+      e.className=`boss ${c}`;
+      e.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;">
+          <strong>${b.n}</strong>
+          ${isAdmin?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
+        </div>
+        <small>${b.l||"-"}</small>
+        <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
+        <div>${b.h?b.h+"h":"-"}</div>
+        <div>${formatCountdown(b)}</div>
+      `;
+      s.appendChild(e);
+    });
+    root.appendChild(s);
   });
-
-  root.appendChild(s);
- });
 }
 setInterval(render,1000);
 </script>
