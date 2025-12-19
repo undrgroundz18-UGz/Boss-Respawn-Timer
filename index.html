@@ -107,8 +107,8 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
+// All bosses
 const bosses = [
-  // Field bosses (El Sera)
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
@@ -132,7 +132,6 @@ const bosses = [
   {n:"Asta",h:62,l:"Silvergrass Field"},
   {n:"Supore",h:62,l:"Silvergrass Field"},
 
-  // Fixed-time bosses (weekly/double-date)
   {n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
   {n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
   {n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
@@ -146,13 +145,23 @@ const bosses = [
   {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
   {n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
 
-  // KRANSIA bosses
   {n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",l:"Kransia",kr:true},
   {n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",l:"Kransia",kr:true},
   {n:"Nevaeh",d:"Sunday",t:"22:00",l:"Kransia",kr:true}
 ];
 
 let data={};
+
+// Initialize Firestore field bosses
+bosses.forEach(b=>{
+  if(b.kr || b.d) return;
+  const ref=doc(db,"bosses",b.n);
+  setDoc(ref,{lastKill:0},{merge:true});
+  onSnapshot(ref,s=>{
+    data[b.n]=s.exists()?s.data():{lastKill:0};
+    render();
+  });
+});
 
 function nextSpawnMs(day,time){
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -196,16 +205,6 @@ function formatCountdown(b){
   }
   return "-";
 }
-
-bosses.forEach(b=>{
-  if(b.kr || b.d) return;
-  const ref=doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0},{merge:true});
-  onSnapshot(ref,s=>{
-    data[b.n]=s.exists()?s.data():{lastKill:0};
-    render();
-  });
-});
 
 window.killBoss=(bossName)=>{
   let input=prompt("Enter boss death time (YYYY-MM-DD HH:MM) or leave empty for current time:");
@@ -253,9 +252,7 @@ function render(){
         ${isAdmin && !b.kr && !b.d?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
       </div>
       <small>${b.l||"-"}</small>
-      <div class="status" style="color:${col}">
-        <span class="dot" style="background:${col}"></span>${t}
-      </div>
+      <div class="status" style="color:${col}"><span class="dot" style="background:${col}"></span>${t}</div>
       <div>${b.h?b.h+"h":b.d?b.d+" "+b.t:"-"}</div>
       <div>${formatCountdown(b)}</div>
     `;
@@ -263,7 +260,7 @@ function render(){
   });
 
   root.appendChild(s);
- }
+ });
 }
 setInterval(render,1000);
 </script>
