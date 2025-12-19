@@ -39,24 +39,30 @@ input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Firebase config
+// ===== Your Firebase config =====
 const app = initializeApp({
-  apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
-  authDomain:"boss-respawn-timer.firebaseapp.com",
-  projectId:"boss-respawn-timer"
+  apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
+  authDomain: "boss-respawn-timer.firebaseapp.com",
+  projectId: "boss-respawn-timer",
+  storageBucket: "boss-respawn-timer.firebasestorage.app",
+  messagingSenderId: "767083470052",
+  appId: "1:767083470052:web:17d7453fe66700321760f1",
+  measurementId: "G-KPH3R4MRBZ"
 });
+// ===============================
+
 const db = getFirestore(app);
 
+// Admin mode
 let isAdmin = false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
-// Define bosses (keep same names as Firestore doc IDs)
+// Boss list
 const bosses = [
-  // Field bosses
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
@@ -78,47 +84,27 @@ const bosses = [
   {n:"Secreta",h:62,l:"Silvergrass Field"},
   {n:"Ordo",h:62,l:"Silvergrass Field"},
   {n:"Asta",h:62,l:"Silvergrass Field"},
-  {n:"Supore",h:62,l:"Silvergrass Field"},
-
-  // Fixed-time / KRANSIA bosses
-  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar",kr:false},
-  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1",kr:false},
-  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F",kr:false},
-  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field",kr:false},
-  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"-",kr:false},
-  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan",kr:false},
-  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill",kr:false},
-  {n:"Milavy",ft:["Saturday 15:00"],l:"Land of Tyriosa 3F",kr:false},
-
-  // KRANSIA only
-  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia",kr:true},
-  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia",kr:true},
-  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia",kr:true}
+  {n:"Supore",h:62,l:"Silvergrass Field"}
 ];
 
+// Data container
 let data={};
 
-// Initialize Firestore for all bosses
-bosses.forEach(b=>{
+// Initialize Firestore docs only if missing
+bosses.forEach(async b=>{
   const ref = doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-",kr:b.kr||false},{merge:true});
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-",kr:b.kr||false});
+  }
+  // Subscribe to updates
   onSnapshot(ref,s=>{
     data[b.n]=s.data();
     render();
   });
 });
 
-function parseTime(str){
-  const [day,time]=str.split(" ");
-  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const now=new Date();
-  const t=new Date(); t.setHours(...time.split(":").map(Number),0,0);
-  let diff=(days.indexOf(day)-now.getDay()+7)%7;
-  if(diff===0 && t<now) diff=7;
-  t.setDate(now.getDate()+diff);
-  return t;
-}
-
+// Timer logic
 function nextSpawn(b){
   try{
     if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
@@ -130,6 +116,17 @@ function nextSpawn(b){
     }
     return Date.now();
   }catch(e){ return Date.now(); }
+}
+
+function parseTime(str){
+  const [day,time]=str.split(" ");
+  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const now=new Date();
+  const t=new Date(); t.setHours(...time.split(":").map(Number),0,0);
+  let diff=(days.indexOf(day)-now.getDay()+7)%7;
+  if(diff===0 && t<now) diff=7;
+  t.setDate(now.getDate()+diff);
+  return t;
 }
 
 function getStatus(b){
@@ -148,6 +145,7 @@ function formatCountdown(b){
   return `${h}h ${m}m`;
 }
 
+// Admin actions
 window.killBoss=(bossName)=>{
   let input=prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
   let time=Date.now();
@@ -164,12 +162,14 @@ window.resetBoss=(bossName)=>{
   }
 };
 
+// Search/filter
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
 let searchText=''; let filterStatus='';
 searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase(); render();});
 filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
 
+// Render function
 function render(){
   const root=document.getElementById("list");
   root.innerHTML="";
@@ -200,6 +200,7 @@ function render(){
     root.appendChild(s);
   });
 }
+
 setInterval(render,1000);
 </script>
 </body>
