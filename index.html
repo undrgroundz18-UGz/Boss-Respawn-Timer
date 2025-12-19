@@ -4,79 +4,74 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
-
 <style>
-body{
-  font-family:system-ui,Arial;
-  background:radial-gradient(circle at top,#1c1c1c,#070707);
-  color:#eee;
-  padding:30px 10px;
+body {
+  font-family: system-ui, Arial, sans-serif;
+  background: radial-gradient(circle at top,#1c1c1c,#070707);
+  color: #eee;
+  padding: 30px 10px;
 }
-.app{
-  max-width:1200px;
-  margin:auto;
-  background:linear-gradient(180deg,#1f1f1f,#101010);
-  border-radius:22px;
-  padding:28px;
-  box-shadow:0 25px 70px rgba(0,0,0,.8);
+.app {
+  max-width: 1200px;
+  margin: auto;
+  background: linear-gradient(180deg,#1f1f1f,#101010);
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 25px 70px rgba(0,0,0,.8);
 }
-h1{text-align:center;margin-bottom:25px}
+h1 { text-align: center; margin-bottom: 25px; }
 
-.section{margin-top:30px}
-.section h2{
-  font-size:13px;
-  color:#aaa;
-  text-transform:uppercase;
-  margin-bottom:10px
-}
+.section { margin-top: 30px; }
+.section h2 { font-size: 13px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
 
-.boss{
-  display:grid;
+.boss {
+  display: grid;
   grid-template-columns: 1.6fr .9fr .9fr 1fr auto;
-  gap:12px;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:10px;
-  align-items:center
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  align-items: center;
 }
-.alive{background:linear-gradient(90deg,rgba(76,175,80,.22),transparent)}
-.soon{background:linear-gradient(90deg,rgba(255,193,7,.22),transparent)}
-.scheduled{background:linear-gradient(90deg,rgba(244,67,54,.22),transparent)}
-.unknown{background:linear-gradient(90deg,rgba(119,119,119,.22),transparent)}
+.alive { background: linear-gradient(90deg, rgba(76,175,80,.22), transparent); }
+.soon { background: linear-gradient(90deg, rgba(255,193,7,.22), transparent); }
+.scheduled { background: linear-gradient(90deg, rgba(244,67,54,.22), transparent); }
 
-.status{
-  font-weight:bold;
-  display:flex;
-  align-items:center;
-  gap:6px
+.status {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.dot{
-  width:12px;
-  height:12px;
-  border-radius:50%
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
+small { color: #aaa; }
 
-small{color:#aaa}
-
-button{
-  padding:6px 10px;
-  background:#2b2b2b;
-  color:#eee;
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:6px;
-  cursor:pointer
+button {
+  padding: 6px 10px;
+  background: #2b2b2b;
+  color: #eee;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 6px;
+  cursor: pointer;
 }
-
-input, select{
-  padding:8px;
-  border-radius:8px;
-  border:none;
-  font-size:14px;
+input, select {
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
 }
-.search-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.search-filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
 </style>
 </head>
-
 <body>
 <div class="app">
 <h1>Boss Respawn Timer</h1>
@@ -88,7 +83,6 @@ input, select{
     <option value="Alive">Alive</option>
     <option value="Soon">Soon</option>
     <option value="Scheduled">Scheduled</option>
-    <option value="Unknown">Unknown</option>
   </select>
 </div>
 
@@ -106,58 +100,59 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-let isAdmin=false;
+let isAdmin = false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
-const bosses=[
-{n:"Venatus",h:10,l:"Corrupted Basin"},
-{n:"Viorent",h:10,l:"Crescent Lake"},
-{n:"Livera",h:24,l:"Protector's Ruins"},
-{n:"Araneo",h:24,l:"Land of Tyriosa 1F"},
-{n:"Undomiel",h:24,l:"Secret Lab"},
-{n:"Lady Dalia",h:18,l:"Twilight Hill"},
-{n:"Ego",h:21,l:"Ulan Canyon"},
-{n:"Amentis",h:29,l:"Land of Glory"},
-{n:"General Aquleus",h:29,l:"Land of Tyriosa 2F"},
-{n:"Gareth",h:32,l:"Deadman 1"},
-{n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
-{n:"Catena",h:35,l:"Deadman 3"},
-{n:"Shuliar",h:35,l:"Ruins of War"},
-{n:"Larba",h:35,l:"Ruins of War"},
-{n:"Titore",h:37,l:"Deadman 2"},
-{n:"Wannitas",h:48,l:"Plateau of Revolution"},
-{n:"Metus",h:48,l:"Plateau of Revolution"},
-{n:"Duplican",h:48,l:"Plateau of Revolution"},
-{n:"Secreta",h:62,l:"Silvergrass Field"},
-{n:"Ordo",h:62,l:"Silvergrass Field"},
-{n:"Asta",h:62,l:"Silvergrass Field"},
-{n:"Supore",h:62,l:"Silvergrass Field"},
+const bosses = [
+  // Field bosses (El Sera)
+  {n:"Venatus",h:10,l:"Corrupted Basin"},
+  {n:"Viorent",h:10,l:"Crescent Lake"},
+  {n:"Livera",h:24,l:"Protector's Ruins"},
+  {n:"Araneo",h:24,l:"Land of Tyriosa 1F"},
+  {n:"Undomiel",h:24,l:"Secret Lab"},
+  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
+  {n:"Ego",h:21,l:"Ulan Canyon"},
+  {n:"Amentis",h:29,l:"Land of Glory"},
+  {n:"General Aquleus",h:29,l:"Land of Tyriosa 2F"},
+  {n:"Gareth",h:32,l:"Deadman 1"},
+  {n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
+  {n:"Catena",h:35,l:"Deadman 3"},
+  {n:"Shuliar",h:35,l:"Ruins of War"},
+  {n:"Larba",h:35,l:"Ruins of War"},
+  {n:"Titore",h:37,l:"Deadman 2"},
+  {n:"Wannitas",h:48,l:"Plateau of Revolution"},
+  {n:"Metus",h:48,l:"Plateau of Revolution"},
+  {n:"Duplican",h:48,l:"Plateau of Revolution"},
+  {n:"Secreta",h:62,l:"Silvergrass Field"},
+  {n:"Ordo",h:62,l:"Silvergrass Field"},
+  {n:"Asta",h:62,l:"Silvergrass Field"},
+  {n:"Supore",h:62,l:"Silvergrass Field"},
 
-// Weekly/Specific
-{n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
-{n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
-{n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
-{n:"Auraq (Wed)",d:"Wednesday",t:"21:00",l:"Garbana 2F"},
-{n:"Chaiflock",d:"Saturday",t:"22:00",l:"Silvergrass Field"},
-{n:"Saphirus (Sun)",d:"Sunday",t:"17:00",l:"-"},
-{n:"Saphirus (Tue)",d:"Tuesday",t:"11:30",l:"-"},
-{n:"Neutro (Tue)",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
-{n:"Neutro (Thu)",d:"Thursday",t:"11:30",l:"Desert of Scream / Ulan"},
-{n:"Thymele (Mon)",d:"Monday",t:"19:00",l:"Twilight Hill"},
-{n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
-{n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
+  // Fixed-time bosses (weekly/double-date)
+  {n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
+  {n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
+  {n:"Auraq (Fri)",d:"Friday",t:"22:00",l:"Garbana 2F"},
+  {n:"Auraq (Wed)",d:"Wednesday",t:"21:00",l:"Garbana 2F"},
+  {n:"Chaiflock",d:"Saturday",t:"22:00",l:"Silvergrass Field"},
+  {n:"Saphirus (Sun)",d:"Sunday",t:"17:00",l:"-"},
+  {n:"Saphirus (Tue)",d:"Tuesday",t:"11:30",l:"-"},
+  {n:"Neutro (Tue)",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
+  {n:"Neutro (Thu)",d:"Thursday",t:"11:30",l:"Desert of Scream / Ulan"},
+  {n:"Thymele (Mon)",d:"Monday",t:"19:00",l:"Twilight Hill"},
+  {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
+  {n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
 
-// KRANSIA BOSSES (2 timers for multiple spawn)
-{n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",l:"Kransia",kr:true},
-{n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",l:"Kransia",kr:true},
-{n:"Nevaeh",d:"Sunday",t:"22:00",l:"Kransia",kr:true}
+  // KRANSIA bosses
+  {n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",l:"Kransia",kr:true},
+  {n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",l:"Kransia",kr:true},
+  {n:"Nevaeh",d:"Sunday",t:"22:00",l:"Kransia",kr:true}
 ];
 
 let data={};
 
-function nextFixed(day,time){
+function nextSpawnMs(day,time){
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   let now=new Date();
   let t=new Date();
@@ -169,43 +164,42 @@ function nextFixed(day,time){
 }
 
 function getStatus(b){
-  if(b.kr){
-    let next1=nextFixed(b.d,b.t);
-    let next2=b.d2?nextFixed(b.d2,b.t2):Infinity;
-    let nextSpawn=Math.min(next1,next2);
-    if(nextSpawn<=0) return ["Alive","alive","#4caf50"];
-    if(nextSpawn<=18000000) return ["Soon","soon","#ffc107"];
+  if(b.kr || b.d){
+    let next1=nextSpawnMs(b.d,b.t);
+    let next2=b.d2?nextSpawnMs(b.d2,b.t2):Infinity;
+    let next=Math.min(next1,next2);
+    if(next<=0) return ["Alive","alive","#4caf50"];
+    if(next<=18000000) return ["Soon","soon","#ffc107"];
     return ["Scheduled","scheduled","#f44336"];
   }
   if(b.h){
-    const lastKill=data[b.n]?.lastKill||0;
-    const r=lastKill+b.h*3600000-Date.now();
+    const r=(data[b.n]?.lastKill||0)+b.h*3600000-Date.now();
     if(r<=0) return ["Alive","alive","#4caf50"];
     if(r<=18000000) return ["Soon","soon","#ffc107"];
     return ["Scheduled","scheduled","#f44336"];
   }
-  return ["Unknown","unknown","#777"];
+  return ["Scheduled","scheduled","#f44336"];
 }
 
 function formatCountdown(b){
-  if(b.kr){
-    let next1=nextFixed(b.d,b.t);
-    let next2=b.d2?nextFixed(b.d2,b.t2):Infinity;
-    let nextSpawn=Math.min(next1,next2);
-    return nextSpawn<=0?"Alive":Math.floor(nextSpawn/3600000)+"h "+Math.floor(nextSpawn%3600000/60000)+"m";
+  if(b.kr || b.d){
+    let next1=nextSpawnMs(b.d,b.t);
+    let next2=b.d2?nextSpawnMs(b.d2,b.t2):Infinity;
+    let next=Math.min(next1,next2);
+    return next<=0?"Alive":Math.floor(next/3600000)+"h "+Math.floor(next%3600000/60000)+"m";
   }
   if(b.h){
-    const lastKill=data[b.n]?.lastKill||0;
-    const r=Math.max(0,lastKill+b.h*3600000-Date.now());
+    const r=Math.max(0,(data[b.n]?.lastKill||0)+b.h*3600000-Date.now());
     return r<=0?"Alive":Math.floor(r/3600000)+"h "+Math.floor(r%3600000/60000)+"m";
   }
   return "-";
 }
 
+// Setup Firestore listeners for field bosses
 bosses.forEach(b=>{
-  if(b.kr) return;
+  if(b.kr || b.d) return;
   const ref=doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0},{merge:true}); 
+  setDoc(ref,{lastKill:0},{merge:true});
   onSnapshot(ref,s=>{
     data[b.n]=s.exists()?s.data():{lastKill:0};
     render();
@@ -238,16 +232,16 @@ filterSelect.addEventListener('change', e => { filterStatus=e.target.value; rend
 function render(){
  const root=document.getElementById("list");
  root.innerHTML="";
- ["Alive","Soon","Scheduled","Unknown"].forEach(sec=>{
+ ["Alive","Soon","Scheduled"].forEach(sec=>{
   let list=bosses.filter(b=>getStatus(b)[0]===sec);
   if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
   if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
   if(!list.length) return;
-  
+
   const s=document.createElement("div");
   s.className="section";
   s.innerHTML=`<h2>${sec}</h2>`;
-  
+
   list.forEach(b=>{
     const [t,c,col]=getStatus(b);
     const e=document.createElement('div');
@@ -255,7 +249,7 @@ function render(){
     e.innerHTML=`
       <div style="display:flex;align-items:center;gap:10px;">
         <strong>${b.n}</strong>
-        ${isAdmin && !b.kr?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
+        ${isAdmin && !b.kr && !b.d?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
       </div>
       <small>${b.l||"-"}</small>
       <div class="status" style="color:${col}">
@@ -266,9 +260,9 @@ function render(){
     `;
     s.appendChild(e);
   });
-  
+
   root.appendChild(s);
- });
+ }
 }
 setInterval(render,1000);
 </script>
