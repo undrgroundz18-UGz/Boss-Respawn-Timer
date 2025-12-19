@@ -155,9 +155,10 @@ const bosses=[
 {n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
 {n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"},
 
-{n:"Motti",u:true},
-{n:"Vevaeh",u:true},
-{n:"Icaruthia",u:true}
+// KRANSIA WORLD BOSSES
+{n:"Icaruthia",d:"Tuesday",t:"21:00",d2:"Friday",t2:"21:00",kr:true},
+{n:"Motti",d:"Wednesday",t:"19:00",d2:"Saturday",t2:"19:00",kr:true},
+{n:"Nevaeh",d:"Sunday",t:"22:00",kr:true}
 ];
 
 let data={};
@@ -175,7 +176,7 @@ function nextFixed(day,time){
 }
 
 function getStatus(b){
- if(b.u) return ["Unknown","unknown","#777"];
+ if(b.kr) return ["Unknown","unknown","#777"];
  if(b.h){
   const d=data[b.n];
   const lastKill = d?.lastKill || 0;
@@ -192,7 +193,7 @@ function getStatus(b){
 }
 
 function formatCountdown(b){
-  if(b.u) return "-";
+  if(b.kr) return "-";
   if(b.h){
     const d=data[b.n];
     const lastKill = d?.lastKill || 0;
@@ -205,7 +206,7 @@ function formatCountdown(b){
 
 /* ========= FIREBASE INIT ========= */
 bosses.forEach(b=>{
-  if(b.u) return;
+  if(b.kr) return;
   const ref=doc(db,"bosses",b.n);
   setDoc(ref,{lastKill:0},{merge:true}); // initialize missing
   onSnapshot(ref,s=>{
@@ -248,9 +249,9 @@ function render(){
     e.innerHTML=`
       <div style="display:flex;align-items:center;gap:10px;">
         <strong>${b.n}</strong>
-        ${isAdmin && !b.u?'<button onclick="killBoss(\''+b.n+'\')">Killed</button>':''}
+        ${isAdmin && !b.kr?'<button onclick="killBoss(\''+b.n+'\')">Killed</button>':''}
       </div>
-      <small>${b.l||"-"}</small>
+      <small>${b.l||b.kr?"Kransia World":""}</small>
       <div class="status" style="color:${col}">
         <span class="dot" style="background:${col}"></span>${t}
       </div>
