@@ -19,23 +19,19 @@ body {
   background: linear-gradient(180deg, #1e1e1e, #121212);
   border-radius: 18px;
   padding: 30px;
-  box-shadow:
-    0 25px 60px rgba(0,0,0,0.7),
-    0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.7);
 }
 
 h1 {
   text-align: center;
   margin-bottom: 35px;
-  letter-spacing: 0.6px;
 }
 
 .section-title {
-  margin: 35px 0 12px;
-  font-size: 15px;
+  margin: 30px 0 10px;
+  font-size: 14px;
   color: #aaa;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 table {
@@ -43,16 +39,8 @@ table {
   border-collapse: collapse;
 }
 
-th {
-  text-align: left;
-  font-size: 13px;
-  color: #888;
-  padding-bottom: 8px;
-}
-
 td {
   padding: 14px 6px;
-  vertical-align: top;
 }
 
 tr {
@@ -60,15 +48,11 @@ tr {
 }
 
 tr.alive {
-  background: linear-gradient(90deg, rgba(76,175,80,0.15), transparent);
+  background: linear-gradient(90deg, rgba(76,175,80,0.18), transparent);
 }
 
 tr.soon {
-  background: linear-gradient(90deg, rgba(255,193,7,0.12), transparent);
-}
-
-tr:hover {
-  background-color: rgba(255,255,255,0.04);
+  background: linear-gradient(90deg, rgba(255,193,7,0.15), transparent);
 }
 
 .status {
@@ -86,33 +70,18 @@ tr:hover {
 
 button {
   margin-top: 6px;
-  margin-right: 5px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   background: #2a2a2a;
   color: #eee;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px;
   cursor: pointer;
 }
 
-button:hover {
-  background: #333;
-}
-
-/* ===== MOBILE ===== */
-@media (max-width: 720px) {
-  table, tr, td {
-    display: block;
-    width: 100%;
-  }
-  th {
-    display: none;
-  }
-  tr {
-    margin-bottom: 18px;
-    border-radius: 12px;
-    padding: 10px;
-  }
+.history {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 6px;
 }
 </style>
 </head>
@@ -130,8 +99,13 @@ import {
   getFirestore,
   doc,
   setDoc,
-  onSnapshot
+  onSnapshot,
+  updateDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ================= CONFIG ================= */
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1451506631799083008/hGDTtPR4n3fAYR_6bC6qHyONs20YajvkmFxW56BrX09yI7HAoJ0zJOnORYwOU0QG6uZm";
 
 /* ================= FIREBASE ================= */
 const firebaseConfig = {
@@ -149,8 +123,7 @@ const db = getFirestore(app);
 /* ================= ADMIN ================= */
 let isAdmin = false;
 if (new URLSearchParams(location.search).get("admin") === "1") {
-  const pw = prompt("Admin password:");
-  if (pw === "UGzMamaMia") isAdmin = true;
+  if (prompt("Admin password") === "UGzMamaMia") isAdmin = true;
 }
 
 /* ================= BOSSES ================= */
@@ -169,16 +142,13 @@ const bosses = [
 
 let data = {};
 
-/* ================= FIREBASE ================= */
-function listen(boss) {
-  const ref = doc(db, "bosses", boss.name);
-  onSnapshot(ref, snap => {
-    if (snap.exists()) data[boss.name] = snap.data();
-    else {
-      setDoc(ref, { lastKill: 0, respawnMs: boss.respawnHours * 3600000 });
-      data[boss.name] = { lastKill: 0, respawnMs: boss.respawnHours * 3600000 };
-    }
-    render();
+/* ================= DISCORD ================= */
+function sendDiscord(msg) {
+  if (!DISCORD_WEBHOOK.startsWith("http")) return;
+  fetch(DISCORD_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: msg })
   });
 }
 
@@ -189,32 +159,53 @@ function remaining(b) {
   return d.lastKill + d.respawnMs - Date.now();
 }
 
-function formatCountdown(ms) {
-  if (ms <= 0) return "Spawn Window Open";
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return `${h}h ${m}m`;
+/* ================= STATUS ================= */
+function status(b) {
+  const r = remaining(b);
+  if (r === null || r <= 0) return { label: "Alive", cls: "alive", color: "#4caf50" };
+  if (r <= 18000000) return { label: "Soon", cls: "soon", color: "#ffc107" };
+  return { label: "Scheduled", cls: "", color: "#f44336" };
 }
 
-function formatDate(ts) {
-  return new Date(ts).toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true
+/* ================= LISTENER ================= */
+function listen(b) {
+  const ref = doc(db, "bosses", b.name);
+  onSnapshot(ref, snap => {
+    if (!snap.exists()) {
+      setDoc(ref, {
+        lastKill: 0,
+        respawnMs: b.respawnHours * 3600000,
+        history: [],
+        lastAlert: ""
+      });
+      return;
+    }
+
+    const prev = data[b.name];
+    data[b.name] = snap.data();
+
+    if (prev) {
+      const oldStatus = status(b).label;
+      const newStatus = status(b).label;
+
+      if (oldStatus !== newStatus && newStatus !== snap.data().lastAlert) {
+        sendDiscord(`**${b.name}** is now **${newStatus}**`);
+        updateDoc(ref, { lastAlert: newStatus });
+      }
+    }
+
+    render();
   });
 }
 
-/* ================= STATUS ================= */
-function status(boss) {
-  const r = remaining(boss);
-  if (r === null || r <= 0)
-    return { label: "Alive", cls: "alive", color: "#4caf50", p: 0 };
-  if (r <= 18000000)
-    return { label: "Soon", cls: "soon", color: "#ffc107", p: 1 };
-  return { label: "Scheduled", cls: "", color: "#f44336", p: 2 };
+/* ================= ADMIN ACTION ================= */
+async function kill(b) {
+  const ref = doc(db, "bosses", b.name);
+  const now = Date.now();
+  await updateDoc(ref, {
+    lastKill: now,
+    history: arrayUnion(`Killed at ${new Date(now).toLocaleString()}`)
+  });
 }
 
 /* ================= RENDER ================= */
@@ -222,69 +213,44 @@ function render() {
   const root = document.getElementById("bossList");
   root.innerHTML = "";
 
-  const groups = {
-    Alive: [],
-    Soon: [],
-    Scheduled: []
-  };
+  ["Alive","Soon","Scheduled"].forEach(group => {
+    const list = bosses.filter(b => status(b).label === group);
+    if (!list.length) return;
 
-  bosses.forEach(b => {
-    const s = status(b).label;
-    groups[s].push(b);
-  });
-
-  for (const title of ["Alive", "Soon", "Scheduled"]) {
-    if (!groups[title].length) continue;
-
-    const h = document.createElement("div");
-    h.className = "section-title";
-    h.innerText = title;
-    root.appendChild(h);
+    const title = document.createElement("div");
+    title.className = "section-title";
+    title.innerText = group;
+    root.appendChild(title);
 
     const table = document.createElement("table");
 
-    groups[title]
-      .sort((a,b)=>(remaining(a)??1e15)-(remaining(b)??1e15))
-      .forEach(boss => {
-        const s = status(boss);
-        const r = remaining(boss);
+    list.forEach(b => {
+      const s = status(b);
+      const r = remaining(b);
 
-        const tr = document.createElement("tr");
-        tr.className = s.cls;
-        tr.innerHTML = `
-          <td>
-            <strong>${boss.name}</strong><br>
-            Lv ${boss.level} — ${boss.location}
-          </td>
-          <td>
-            <span class="status" style="color:${s.color}">
-              <span class="dot" style="background:${s.color}"></span>
-              ${s.label}
-            </span>
-          </td>
-          <td>${r===null?"—":formatDate(data[boss.name].lastKill + data[boss.name].respawnMs)}</td>
-          <td>${r===null?"Alive":formatCountdown(r)}</td>
-        `;
+      const tr = document.createElement("tr");
+      tr.className = s.cls;
+      tr.innerHTML = `
+        <td><strong>${b.name}</strong><br>${b.location}</td>
+        <td class="status" style="color:${s.color}">
+          <span class="dot" style="background:${s.color}"></span>${s.label}
+        </td>
+        <td>${r===null?"Alive":Math.floor(r/3600000)+"h"}</td>
+        <td></td>
+      `;
 
-        if (isAdmin) {
-          const td = tr.lastElementChild;
-          td.appendChild(document.createElement("br"));
+      if (isAdmin) {
+        const btn = document.createElement("button");
+        btn.innerText = "Boss Killed";
+        btn.onclick = () => kill(b);
+        tr.lastElementChild.appendChild(btn);
+      }
 
-          const btn = document.createElement("button");
-          btn.innerText = "Boss Killed";
-          btn.onclick = () =>
-            setDoc(doc(db,"bosses",boss.name), {
-              lastKill: Date.now(),
-              respawnMs: boss.respawnHours * 3600000
-            },{merge:true});
-          td.appendChild(btn);
-        }
-
-        table.appendChild(tr);
-      });
+      table.appendChild(tr);
+    });
 
     root.appendChild(table);
-  }
+  });
 }
 
 /* ================= START ================= */
