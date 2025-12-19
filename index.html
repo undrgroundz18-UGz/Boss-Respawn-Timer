@@ -6,257 +6,219 @@
 <title>Boss Respawn Timer</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #1b1b1b, #080808);
-  color: #eee;
-  padding: 40px 12px;
+body{
+  font-family:system-ui,Arial;
+  background:radial-gradient(circle at top,#1c1c1c,#070707);
+  color:#eee;
+  padding:30px 10px;
 }
-
-.app {
-  max-width: 1100px;
-  margin: auto;
-  background: linear-gradient(180deg, #1e1e1e, #121212);
-  border-radius: 18px;
-  padding: 30px;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+.app{
+  max-width:1200px;
+  margin:auto;
+  background:linear-gradient(180deg,#1f1f1f,#101010);
+  border-radius:22px;
+  padding:28px;
+  box-shadow:0 25px 70px rgba(0,0,0,.8);
 }
-
-h1 {
-  text-align: center;
-  margin-bottom: 35px;
+h1{text-align:center;margin-bottom:25px}
+.section{margin-top:30px}
+.section h2{
+  font-size:13px;
+  color:#aaa;
+  text-transform:uppercase;
+  margin-bottom:10px
 }
-
-.section-title {
-  margin: 30px 0 10px;
-  font-size: 14px;
-  color: #aaa;
-  text-transform: uppercase;
+.boss{
+  display:grid;
+  grid-template-columns:48px 1fr auto auto;
+  gap:12px;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:10px;
+  align-items:center
 }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-td {
-  padding: 14px 6px;
-}
-
-tr {
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-tr.alive {
-  background: linear-gradient(90deg, rgba(76,175,80,0.18), transparent);
-}
-
-tr.soon {
-  background: linear-gradient(90deg, rgba(255,193,7,0.15), transparent);
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: bold;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-button {
-  margin-top: 6px;
-  padding: 6px 10px;
-  background: #2a2a2a;
-  color: #eee;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.history {
-  font-size: 12px;
-  color: #aaa;
-  margin-top: 6px;
+.alive{background:linear-gradient(90deg,rgba(76,175,80,.22),transparent)}
+.soon{background:linear-gradient(90deg,rgba(255,193,7,.22),transparent)}
+.scheduled{background:linear-gradient(90deg,rgba(244,67,54,.22),transparent)}
+.icon{font-size:26px}
+.status{font-weight:bold;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+button{
+  padding:6px 10px;
+  background:#2b2b2b;
+  color:#eee;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:6px;
+  cursor:pointer
 }
 </style>
 </head>
 
 <body>
-
 <div class="app">
-  <h1>Boss Respawn Timer</h1>
-  <div id="bossList"></div>
+<h1>Boss Respawn Timer</h1>
+<div id="list"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  onSnapshot,
-  updateDoc,
-  arrayUnion
+  getFirestore, doc, setDoc, onSnapshot, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ================= CONFIG ================= */
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1451506631799083008/hGDTtPR4n3fAYR_6bC6qHyONs20YajvkmFxW56BrX09yI7HAoJ0zJOnORYwOU0QG6uZm";
+const DISCORD_WEBHOOK =
+"https://discord.com/api/webhooks/1451506631799083008/hGDTtPR4n3fAYR_6bC6qHyONs20YajvkmFxW56BrX09yI7HAoJ0zJOnORYwOU0QG6uZm";
+const DISCORD_MENTION = "@here";
 
 /* ================= FIREBASE ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
-  authDomain: "boss-respawn-timer.firebaseapp.com",
-  projectId: "boss-respawn-timer",
-  storageBucket: "boss-respawn-timer.firebasestorage.app",
-  messagingSenderId: "767083470052",
-  appId: "1:767083470052:web:17d7453fe66700321760f1",
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
+  authDomain:"boss-respawn-timer.firebaseapp.com",
+  projectId:"boss-respawn-timer"
+});
 const db = getFirestore(app);
 
 /* ================= ADMIN ================= */
-let isAdmin = false;
-if (new URLSearchParams(location.search).get("admin") === "1") {
-  if (prompt("Admin password") === "UGzMamaMia") isAdmin = true;
+let isAdmin=false;
+if(new URLSearchParams(location.search).get("admin")==="1"){
+  if(prompt("Password")==="UGzAdmin") isAdmin=true;
 }
 
 /* ================= BOSSES ================= */
 const bosses = [
-  { name: "Venatus", level: 60, location: "Corrupted Basin", respawnHours: 10 },
-  { name: "Viorent", level: 65, location: "Crescent Lake", respawnHours: 10 },
-  { name: "Ego", level: 70, location: "Ulan Canyon", respawnHours: 21 },
-  { name: "Livera", level: 75, location: "Protectors Ruins", respawnHours: 24 },
-  { name: "Araneo", level: 75, location: "Lower Tomb of Tyriosa 1F", respawnHours: 24 },
-  { name: "Undomiel", level: 80, location: "Secret Lab", respawnHours: 24 },
-  { name: "Lady Dalia", level: 85, location: "Twilight Hill", respawnHours: 18 },
-  { name: "General Aquleus", level: 85, location: "Lower Tomb of Tyriosa 2F", respawnHours: 29 },
-  { name: "Amentis", level: 88, location: "Land of Glory", respawnHours: 29 },
-  { name: "Baron Braudmore", level: 88, location: "Battlefield of Templar", respawnHours: 32 }
+{n:"Venatus",h:10,l:"-"},
+{n:"Viorent",h:10,l:"-"},
+{n:"Livera",h:24,l:"-"},
+{n:"Araneo",h:24,l:"-"},
+{n:"Undomiel",h:24,l:"-"},
+{n:"Lady Dalia",h:18,l:"-"},
+{n:"Ego",h:21,l:"-"},
+{n:"Amentis",h:29,l:"Land of Glory"},
+{n:"General Aquleus",h:29,l:"-"},
+{n:"Gareth",h:32,l:"Deadman 1"},
+{n:"Baron Braudmore",h:32,l:"-"},
+{n:"Catena",h:35,l:"Deadman 3"},
+{n:"Shuliar",h:35,l:"Ruins of War"},
+{n:"Larba",h:35,l:"Ruins of War"},
+{n:"Titore",h:37,l:"Deadman 2"},
+{n:"Wannitas",h:48,l:"Plateau of Revolution"},
+{n:"Metus",h:48,l:"Plateau of Revolution"},
+{n:"Duplican",h:48,l:"Plateau of Revolution"},
+{n:"Secreta",h:62,l:"Silvergrass Field"},
+{n:"Ordo",h:62,l:"Silvergrass Field"},
+{n:"Asta",h:62,l:"Silvergrass Field"},
+{n:"Supore",h:62,l:"Silvergrass Field"},
+
+/* FIXED SCHEDULE */
+{n:"Ringor",d:"Saturday",t:"17:00",l:"Battlefield of Templar"},
+{n:"Roderick",d:"Friday",t:"19:00",l:"Garbana 1"},
+{n:"Auraq",d:"Friday",t:"22:00",l:"Garbana 2F"},
+{n:"Auraq (Wed)",d:"Wednesday",t:"21:00",l:"Garbana 2F"},
+{n:"Chaiflock",d:"Saturday",t:"22:00",l:"Silvergrass Field"},
+{n:"Saphirus",d:"Sunday",t:"17:00",l:"-"},
+{n:"Saphirus (Tue)",d:"Tuesday",t:"11:30",l:"-"},
+{n:"Neutro",d:"Tuesday",t:"19:00",l:"Desert of Scream / Ulan"},
+{n:"Neutro (Thu)",d:"Thursday",t:"11:30",l:"Desert of Scream / Ulan"},
+{n:"Thymele",d:"Monday",t:"19:00",l:"Twilight Hill"},
+{n:"Thymele (Wed)",d:"Wednesday",t:"11:30",l:"Twilight Hill"},
+{n:"Milavy",d:"Saturday",t:"15:00",l:"Land of Tyriosa 3F"}
 ];
 
-let data = {};
+let data={};
 
-/* ================= DISCORD ================= */
-function sendDiscord(msg) {
-  if (!DISCORD_WEBHOOK.startsWith("http")) return;
-  fetch(DISCORD_WEBHOOK, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: msg })
-  });
+/* ================= HELPERS ================= */
+function discord(msg){
+ fetch(DISCORD_WEBHOOK,{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({content:`${DISCORD_MENTION} ${msg}`})
+ });
 }
 
-/* ================= TIME ================= */
-function remaining(b) {
-  const d = data[b.name];
-  if (!d || !d.lastKill) return null;
-  return d.lastKill + d.respawnMs - Date.now();
+function nextFixed(day,time){
+ const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+ let now=new Date();
+ let target=new Date();
+ target.setHours(...time.split(":").map(Number),0,0);
+ let diff=(days.indexOf(day)-now.getDay()+7)%7;
+ if(diff===0 && target<now) diff=7;
+ target.setDate(now.getDate()+diff);
+ return target-now;
 }
+
+/* ================= LISTEN ================= */
+bosses.forEach(b=>{
+ const ref=doc(db,"bosses",b.n);
+ onSnapshot(ref,s=>{
+  if(!s.exists()){
+   setDoc(ref,{lastKill:0,alert:""});
+   return;
+  }
+  data[b.n]=s.data();
+  render();
+ });
+});
 
 /* ================= STATUS ================= */
-function status(b) {
-  const r = remaining(b);
-  if (r === null || r <= 0) return { label: "Alive", cls: "alive", color: "#4caf50" };
-  if (r <= 18000000) return { label: "Soon", cls: "soon", color: "#ffc107" };
-  return { label: "Scheduled", cls: "", color: "#f44336" };
+function status(b){
+ if(b.h){
+  const d=data[b.n];
+  if(!d||d.lastKill===0) return ["Alive","alive","#4caf50"];
+  const r=d.lastKill+b.h*3600000-Date.now();
+  if(r<=0) return ["Alive","alive","#4caf50"];
+  if(r<=18000000) return ["Soon","soon","#ffc107"];
+  return ["Scheduled","scheduled","#f44336"];
+ }else{
+  const r=nextFixed(b.d,b.t);
+  if(r<=0) return ["Alive","alive","#4caf50"];
+  if(r<=18000000) return ["Soon","soon","#ffc107"];
+  return ["Scheduled","scheduled","#f44336"];
+ }
 }
 
-/* ================= LISTENER ================= */
-function listen(b) {
-  const ref = doc(db, "bosses", b.name);
-  onSnapshot(ref, snap => {
-    if (!snap.exists()) {
-      setDoc(ref, {
-        lastKill: 0,
-        respawnMs: b.respawnHours * 3600000,
-        history: [],
-        lastAlert: ""
-      });
-      return;
-    }
-
-    const prev = data[b.name];
-    data[b.name] = snap.data();
-
-    if (prev) {
-      const oldStatus = status(b).label;
-      const newStatus = status(b).label;
-
-      if (oldStatus !== newStatus && newStatus !== snap.data().lastAlert) {
-        sendDiscord(`**${b.name}** is now **${newStatus}**`);
-        updateDoc(ref, { lastAlert: newStatus });
-      }
-    }
-
-    render();
-  });
-}
-
-/* ================= ADMIN ACTION ================= */
-async function kill(b) {
-  const ref = doc(db, "bosses", b.name);
-  const now = Date.now();
-  await updateDoc(ref, {
-    lastKill: now,
-    history: arrayUnion(`Killed at ${new Date(now).toLocaleString()}`)
-  });
+/* ================= KILL ================= */
+function kill(b){
+ updateDoc(doc(db,"bosses",b.n),{
+  lastKill:Date.now(),
+  alert:""
+ });
 }
 
 /* ================= RENDER ================= */
-function render() {
-  const root = document.getElementById("bossList");
-  root.innerHTML = "";
-
-  ["Alive","Soon","Scheduled"].forEach(group => {
-    const list = bosses.filter(b => status(b).label === group);
-    if (!list.length) return;
-
-    const title = document.createElement("div");
-    title.className = "section-title";
-    title.innerText = group;
-    root.appendChild(title);
-
-    const table = document.createElement("table");
-
-    list.forEach(b => {
-      const s = status(b);
-      const r = remaining(b);
-
-      const tr = document.createElement("tr");
-      tr.className = s.cls;
-      tr.innerHTML = `
-        <td><strong>${b.name}</strong><br>${b.location}</td>
-        <td class="status" style="color:${s.color}">
-          <span class="dot" style="background:${s.color}"></span>${s.label}
-        </td>
-        <td>${r===null?"Alive":Math.floor(r/3600000)+"h"}</td>
-        <td></td>
-      `;
-
-      if (isAdmin) {
-        const btn = document.createElement("button");
-        btn.innerText = "Boss Killed";
-        btn.onclick = () => kill(b);
-        tr.lastElementChild.appendChild(btn);
-      }
-
-      table.appendChild(tr);
-    });
-
-    root.appendChild(table);
+function render(){
+ const root=document.getElementById("list");
+ root.innerHTML="";
+ ["Alive","Soon","Scheduled"].forEach(sec=>{
+  const list=bosses.filter(b=>status(b)[0]===sec);
+  if(!list.length) return;
+  const s=document.createElement("div");
+  s.className="section";
+  s.innerHTML=`<h2>${sec}</h2>`;
+  list.forEach(b=>{
+   const [t,c,col]=status(b);
+   const e=document.createElement("div");
+   e.className=`boss ${c}`;
+   e.innerHTML=`
+    <div class="icon">⚔️</div>
+    <div><strong>${b.n}</strong><br>${b.l}</div>
+    <div class="status" style="color:${col}">
+      <span class="dot" style="background:${col}"></span>${t}
+    </div>
+    <div>${b.h?b.h+"h":b.d+" "+b.t}</div>
+   `;
+   if(isAdmin){
+    const btn=document.createElement("button");
+    btn.textContent="Killed";
+    btn.onclick=()=>kill(b);
+    e.appendChild(btn);
+   }
+   s.appendChild(e);
   });
+  root.appendChild(s);
+ });
 }
-
-/* ================= START ================= */
-bosses.forEach(listen);
-setInterval(render, 1000);
+setInterval(render,1000);
 </script>
-
 </body>
 </html>
