@@ -7,19 +7,19 @@
 <style>
 body {
   font-family: system-ui, Arial, sans-serif;
-  background: radial-gradient(circle at top,#1c1c1c,#070707);
+  background: #111;
   color: #eee;
   padding: 30px 10px;
 }
 .app {
   max-width: 1200px;
   margin: auto;
-  background: linear-gradient(180deg,#1f1f1f,#101010);
+  background: #1e1e1e;
   border-radius: 22px;
   padding: 28px;
   box-shadow: 0 25px 70px rgba(0,0,0,.8);
 }
-h1 { text-align: center; margin-bottom: 25px; }
+h1 { text-align: center; margin-bottom: 25px; color:#fff; }
 
 .section { margin-top: 30px; }
 .section h2 { font-size: 13px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
@@ -32,16 +32,18 @@ h1 { text-align: center; margin-bottom: 25px; }
   border-radius: 14px;
   margin-bottom: 10px;
   align-items: center;
+  background: linear-gradient(90deg, rgba(50,50,50,0.9), rgba(30,30,30,0.9));
 }
-.alive { background: linear-gradient(90deg, rgba(76,175,80,.22), transparent); }
-.soon { background: linear-gradient(90deg, rgba(255,193,7,.22), transparent); }
-.scheduled { background: linear-gradient(90deg, rgba(244,67,54,.22), transparent); }
+.alive { background: linear-gradient(90deg, rgba(76,175,80,0.22), rgba(30,30,30,0.9)); }
+.soon { background: linear-gradient(90deg, rgba(255,193,7,0.22), rgba(30,30,30,0.9)); }
+.scheduled { background: linear-gradient(90deg, rgba(244,67,54,0.22), rgba(30,30,30,0.9)); }
 
 .status {
   font-weight: bold;
   display: flex;
   align-items: center;
   gap: 6px;
+  color:#eee;
 }
 .dot {
   width: 12px;
@@ -195,7 +197,6 @@ function formatCountdown(b){
   return "-";
 }
 
-// Setup Firestore listeners for field bosses
 bosses.forEach(b=>{
   if(b.kr || b.d) return;
   const ref=doc(db,"bosses",b.n);
