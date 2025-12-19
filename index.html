@@ -41,6 +41,7 @@ input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Firebase config
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
@@ -53,8 +54,9 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
 
-// Boss definitions
+// Define bosses (keep same names as Firestore doc IDs)
 const bosses = [
+  // Field bosses
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
@@ -78,6 +80,7 @@ const bosses = [
   {n:"Asta",h:62,l:"Silvergrass Field"},
   {n:"Supore",h:62,l:"Silvergrass Field"},
 
+  // Fixed-time / KRANSIA bosses
   {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar",kr:false},
   {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1",kr:false},
   {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F",kr:false},
@@ -87,6 +90,7 @@ const bosses = [
   {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill",kr:false},
   {n:"Milavy",ft:["Saturday 15:00"],l:"Land of Tyriosa 3F",kr:false},
 
+  // KRANSIA only
   {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia",kr:true},
   {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia",kr:true},
   {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia",kr:true}
@@ -97,14 +101,14 @@ let data={};
 // Initialize Firestore for all bosses
 bosses.forEach(b=>{
   const ref = doc(db,"bosses",b.n);
-  setDoc(ref,{lastKill:0,ft:b.ft,l:b.l,kr:b.kr||false},{merge:true});
+  setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-",kr:b.kr||false},{merge:true});
   onSnapshot(ref,s=>{
     data[b.n]=s.data();
     render();
   });
 });
 
-function parseTime(str){ // "Saturday 17:00"
+function parseTime(str){
   const [day,time]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const now=new Date();
@@ -116,17 +120,16 @@ function parseTime(str){ // "Saturday 17:00"
 }
 
 function nextSpawn(b){
-  if(b.h){
-    return (data[b.n]?.lastKill||0)+b.h*3600000;
-  } else if(b.ft){
-    const nextTimes = b.ft.map(f=>parseTime(f).getTime());
-    const lastKill = data[b.n]?.lastKill || 0;
-    for(let t of nextTimes){
-      if(t>lastKill) return t;
+  try{
+    if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
+    if(b.ft){
+      const times=b.ft.map(f=>parseTime(f).getTime());
+      const lastKill=data[b.n]?.lastKill||0;
+      for(let t of times) if(t>lastKill) return t;
+      return times[0]+7*24*3600000;
     }
-    return nextTimes[0]+7*24*3600000; // next week
-  }
-  return Date.now();
+    return Date.now();
+  }catch(e){ return Date.now(); }
 }
 
 function getStatus(b){
