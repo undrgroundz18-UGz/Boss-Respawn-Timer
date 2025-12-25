@@ -3,85 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boss Respawn Tracker</title>
+<title>Boss Respawn Timer</title>
 
 <style>
 :root{
   --bg:#0f1115;
-  --panel:#181b21;
-  --row:#1f232b;
+  --panel:#181b22;
   --border:#2a2f3a;
-  --green:#2ecc71;
-  --orange:#f39c12;
-  --red:#e74c3c;
-  --text:#e6e8ee;
+  --text:#f1f3f6;
   --muted:#9aa0aa;
+
+  --green:#3ddc84;
+  --orange:#f4b740;
+  --red:#ff5f56;
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
   background:var(--bg);
   color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
 }
 
 .app{
-  max-width:1100px;
-  margin:30px auto;
-  padding:20px;
+  max-width:1200px;
+  margin:auto;
+  padding:26px 16px 60px;
 }
 
 h1{
   text-align:center;
+  font-size:22px;
   margin-bottom:20px;
+  font-weight:600;
+}
+
+.controls{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+input,select{
+  background:var(--panel);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:14px;
 }
 
 .section{
-  background:var(--panel);
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:25px;
-  box-shadow:0 15px 40px rgba(0,0,0,.5);
+  margin-top:26px;
 }
 
 .section h2{
-  font-size:13px;
-  letter-spacing:.08em;
+  font-size:12px;
+  letter-spacing:.14em;
   color:var(--muted);
-  margin:0 0 12px;
-  text-transform:uppercase;
+  margin-bottom:10px;
 }
 
-.table{
-  width:100%;
-}
-
-.header, .row{
+/* ===== Boss Row ===== */
+.boss{
   display:grid;
-  grid-template-columns: 1.6fr 1fr 2fr 1fr;
-  gap:10px;
+  grid-template-columns: 1.6fr .8fr 1fr 1fr;
+  gap:14px;
   align-items:center;
+  padding:14px 16px;
+  border-radius:14px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  margin-bottom:10px;
 }
 
-.header{
+.boss.alive{border-left:5px solid var(--green);}
+.boss.soon{border-left:5px solid var(--orange);}
+.boss.dead{border-left:5px solid var(--red);}
+
+.boss-name strong{font-size:15px;}
+.boss-name small{
+  display:block;
   font-size:12px;
   color:var(--muted);
-  padding:6px 10px;
-}
-
-.row{
-  background:var(--row);
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:8px;
+  margin-top:2px;
 }
 
 .status{
+  font-weight:600;
+  font-size:13px;
   display:flex;
   align-items:center;
-  gap:6px;
-  font-weight:600;
+  gap:8px;
 }
 
 .dot{
@@ -90,142 +106,180 @@ h1{
   border-radius:50%;
 }
 
-.green{color:var(--green)}
-.orange{color:var(--orange)}
-.red{color:var(--red)}
+.time{
+  font-size:15px;
+  font-weight:600;
+}
 
-small{color:var(--muted)}
+.schedule{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.actions{
+  margin-top:6px;
+  display:flex;
+  gap:6px;
+}
+
+button{
+  background:#1f2430;
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:4px 8px;
+  font-size:12px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+@media(max-width:900px){
+  .boss{grid-template-columns:1fr;}
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-<h1>Boss Respawn Tracker</h1>
+<h1>Boss Respawn Timer</h1>
 
-<div id="fixedToday" class="section">
+<div class="controls">
+  <input id="search" placeholder="Search boss">
+  <select id="filter">
+    <option value="">All</option>
+    <option value="Alive">Alive</option>
+    <option value="Respawning">Respawning</option>
+    <option value="Dead">Dead</option>
+  </select>
+</div>
+
+<div class="section">
   <h2>Fixed Respawns Today</h2>
-  <div class="table">
-    <div class="header">
-      <div>Boss</div>
-      <div>Status</div>
-      <div>Respawn Time</div>
-      <div>Countdown</div>
-    </div>
-    <div id="fixedList"></div>
-  </div>
+  <div id="fixedToday"></div>
 </div>
 
 <div class="section">
   <h2>Dynamic Respawns</h2>
-  <div class="table">
-    <div class="header">
-      <div>Boss</div>
-      <div>Status</div>
-      <div>Respawn Time</div>
-      <div>Countdown</div>
-    </div>
-    <div id="dynamicList"></div>
-  </div>
+  <div id="dynamic"></div>
 </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
-  projectId:"boss-respawn-timer",
-  storageBucket:"boss-respawn-timer.firebasestorage.app",
-  messagingSenderId:"767083470052",
-  appId:"1:767083470052:web:17d7453fe66700321760f1"
+  projectId:"boss-respawn-timer"
 });
 const db = getFirestore(app);
 
-const bosses = [
-  {n:"Venatus",h:10},
-  {n:"Viorent",h:10},
-  {n:"Livera",h:24},
-  {n:"Araneo",h:24},
-  {n:"Undomiel",h:24},
-  {n:"Lady Dalia",h:18},
-  {n:"Ego",h:21},
-  {n:"Amentis",h:29},
-  {n:"General Aquleus",h:29},
+/* Admin */
+let isAdmin=false;
+if(new URLSearchParams(location.search).get("admin")==="1"){
+  if(prompt("Admin password")==="UGzAdmin") isAdmin=true;
+}
 
-  {n:"Ringor",ft:["Saturday 17:00"]},
-  {n:"Roderick",ft:["Friday 19:00"]},
-  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"]},
-  {n:"Nevaeh",ft:["Sunday 22:00"]}
+/* Boss list */
+const bosses = [
+  {n:"Venatus",h:10,l:"Corrupted Basin"},
+  {n:"Viorent",h:10,l:"Crescent Lake"},
+  {n:"Livera",h:24,l:"Protector's Ruins"},
+  {n:"Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
+  {n:"Undomiel",h:24,l:"Secret Lab"},
+  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
+  {n:"Ego",h:21,l:"Ulan Canyon"},
+  {n:"Amentis",h:29,l:"Land of Glory"},
+  {n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
+  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
+  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
+  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
+  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
 
-const data={};
+let data={};
 
 bosses.forEach(async b=>{
   const ref=doc(db,"bosses",b.n);
   const snap=await getDoc(ref);
   if(!snap.exists()) await setDoc(ref,{lastKill:0});
-  onSnapshot(ref,s=>{ data[b.n]=s.data(); render(); });
+  onSnapshot(ref,s=>{data[b.n]=s.data();render();});
 });
 
-function parseFixed(str){
+function parseTime(str){
   const [d,t]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const now=new Date();
-  const date=new Date();
-  date.setHours(...t.split(":").map(Number),0,0);
+  const n=new Date();
+  n.setHours(...t.split(":").map(Number),0,0);
   let diff=(days.indexOf(d)-now.getDay()+7)%7;
-  date.setDate(now.getDate()+diff);
-  return date;
+  if(diff===0 && n<now) diff=7;
+  n.setDate(now.getDate()+diff);
+  return n;
 }
 
 function nextSpawn(b){
   if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
   if(b.ft){
-    const times=b.ft.map(f=>parseFixed(f).getTime());
-    return times.find(t=>t>Date.now()) || times[0]+604800000;
+    const times=b.ft.map(f=>parseTime(f).getTime());
+    return times.find(t=>t>Date.now())||times[0]+604800000;
   }
-  return 0;
 }
 
-function status(ns){
-  const d=ns-Date.now();
-  if(d<=0) return ["Alive","green"];
-  if(d<=6*3600000) return ["Respawning","orange"];
-  return ["Dead","red"];
+function status(b){
+  const d=nextSpawn(b)-Date.now();
+  if(d<=0) return ["Alive","alive","var(--green)"];
+  if(d<=18000000) return ["Respawning","soon","var(--orange)"];
+  return ["Dead","dead","var(--red)"];
 }
 
-function countdown(ns){
-  const d=ns-Date.now();
+function countdown(b){
+  const d=nextSpawn(b)-Date.now();
   if(d<=0) return "Now";
   const h=Math.floor(d/3600000);
   const m=Math.floor((d%3600000)/60000);
   return `${h}h ${m}m`;
 }
 
+window.killBoss=n=>updateDoc(doc(db,"bosses",n),{lastKill:Date.now()});
+window.resetBoss=n=>confirm("Reset?")&&updateDoc(doc(db,"bosses",n),{lastKill:0});
+
+const search=document.getElementById("search");
+const filter=document.getElementById("filter");
+
 function render(){
-  fixedList.innerHTML="";
-  dynamicList.innerHTML="";
+  fixedToday.innerHTML="";
+  dynamic.innerHTML="";
   bosses.forEach(b=>{
-    const ns=nextSpawn(b);
-    const [s,c]=status(ns);
-    const row=document.createElement("div");
-    row.className="row";
-    row.innerHTML=`
-      <div>${b.n}</div>
-      <div class="status ${c}"><span class="dot" style="background:var(--${c})"></span>${s}</div>
-      <div>${new Date(ns).toLocaleString()}</div>
-      <div>${countdown(ns)}</div>
-    `;
-    if(b.ft && parseFixed(b.ft[0]).toDateString()===new Date().toDateString()){
-      fixedList.appendChild(row);
-    }else if(b.h){
-      dynamicList.appendChild(row);
-    }
+    const [t,cls,col]=status(b);
+    if(filter.value && filter.value!==t) return;
+    if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
+
+    const row=`
+    <div class="boss ${cls}">
+      <div class="boss-name">
+        <strong>${b.n}</strong>
+        <small>${b.l}</small>
+        ${isAdmin?`<div class="actions">
+          <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="resetBoss('${b.n}')">Reset</button>
+        </div>`:""}
+      </div>
+      <div class="status">
+        <span class="dot" style="background:${col}"></span>${t}
+      </div>
+      <div class="time">${new Date(nextSpawn(b)).toLocaleString()}</div>
+      <div class="time">${countdown(b)}</div>
+    </div>`;
+
+    if(b.ft && parseTime(b.ft[0]).toDateString()===new Date().toDateString())
+      fixedToday.innerHTML+=row;
+    else if(b.h)
+      dynamic.innerHTML+=row;
   });
 }
 
+search.oninput=filter.onchange=render;
 setInterval(render,1000);
 </script>
 </body>
