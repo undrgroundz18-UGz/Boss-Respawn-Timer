@@ -67,18 +67,6 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   
 // Boss list
 const bosses = [
-  const resetAllBtn = document.getElementById("resetAllBtn");
-
-if(isAdmin && resetAllBtn){
-  resetAllBtn.style.display="inline-block";
-  resetAllBtn.onclick = async ()=>{
-    if(!confirm("RESET ALL BOSSES?")) return;
-    for(const b of bosses){
-      await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
-    }
-    alert("All bosses reset.");
-  };
-}
   // Hourly bosses
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -116,6 +104,18 @@ if(isAdmin && resetAllBtn){
   {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
   {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
+  const resetAllBtn = document.getElementById("resetAllBtn");
+
+if(isAdmin && resetAllBtn){
+  resetAllBtn.style.display="inline-block";
+  resetAllBtn.onclick = async ()=>{
+    if(!confirm("RESET ALL BOSSES?")) return;
+    for(const b of bosses){
+      await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
+    }
+    alert("All bosses reset.");
+  };
+}
 
 let data = {};
 
@@ -246,7 +246,7 @@ function render(){
      EXISTING LOGIC (UNCHANGED)
      ================================ */
   bosses.forEach(b=>{
-    const [t,cls,col]=status(b);
+  if(isTodayFixedBoss(b)) return; // prevents duplication
     if(filter.value && filter.value!==t) return;
     if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
 
@@ -265,7 +265,7 @@ function render(){
         <span class="dot" style="background:${col}"></span>${t}
       </div>
 
-      <div class="time">${countdown(b)}</div>
+      <div class="time">${formatCountdown(b)}</div>
 
       <div class="schedule">
         ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
@@ -279,6 +279,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
