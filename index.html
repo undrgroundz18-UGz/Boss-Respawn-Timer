@@ -7,52 +7,52 @@
 
 <style>
 :root{
-  --bg:#0e0e10;
-  --card:#16161a;
-  --muted:#9a9aa2;
-  --text:#f5f5f7;
+  --bg:#0f1115;
+  --panel:#181b22;
+  --border:#2a2f3a;
+  --text:#f1f3f6;
+  --muted:#9aa0aa;
+
   --green:#3ddc84;
-  --yellow:#f4c430;
+  --orange:#f4b740;
   --red:#ff5f56;
-  --border:#26262b;
 }
 
 *{box-sizing:border-box}
 
 body{
   margin:0;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
   background:var(--bg);
   color:var(--text);
 }
 
 .app{
-  max-width:1100px;
+  max-width:1200px;
   margin:auto;
-  padding:24px 16px 60px;
+  padding:26px 16px 60px;
 }
 
 h1{
   text-align:center;
   font-size:22px;
-  font-weight:600;
-  letter-spacing:.4px;
   margin-bottom:20px;
+  font-weight:600;
 }
 
 .controls{
   display:flex;
   gap:10px;
+  margin-bottom:20px;
   flex-wrap:wrap;
-  margin-bottom:24px;
 }
 
 input,select{
-  background:var(--card);
-  color:var(--text);
+  background:var(--panel);
   border:1px solid var(--border);
-  border-radius:10px;
+  color:var(--text);
   padding:10px 12px;
+  border-radius:10px;
   font-size:14px;
 }
 
@@ -62,90 +62,89 @@ input,select{
 
 .section h2{
   font-size:12px;
-  letter-spacing:.12em;
+  letter-spacing:.14em;
   color:var(--muted);
   margin-bottom:10px;
 }
 
+/* ===== Boss Row ===== */
 .boss{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px 16px;
   display:grid;
-  grid-template-columns: 1.6fr .9fr auto;
-  gap:12px;
+  grid-template-columns: 1.6fr .7fr .8fr 1fr;
+  gap:14px;
   align-items:center;
+  padding:14px 16px;
+  border-radius:14px;
+  background:var(--panel);
+  border:1px solid var(--border);
   margin-bottom:10px;
 }
 
-.name{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
+.boss.alive{border-left:5px solid var(--green);}
+.boss.soon{border-left:5px solid var(--orange);}
+.boss.dead{border-left:5px solid var(--red);}
+
+.boss-name strong{
+  font-size:15px;
 }
 
-.name strong{
+.boss-name small{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* Status */
+.status{
+  font-weight:600;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+}
+
+/* Time */
+.time{
   font-size:15px;
   font-weight:600;
 }
 
-.name small{
-  color:var(--muted);
-  font-size:12px;
-}
-
-.meta{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+/* Schedule */
+.schedule{
   font-size:13px;
+  color:var(--muted);
 }
 
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:12px;
-  font-weight:500;
-}
-
-.dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-}
-
-.countdown{
-  font-size:16px;
-  font-weight:600;
-  text-align:right;
-}
-
+/* Admin buttons */
 .actions{
+  margin-top:6px;
   display:flex;
   gap:6px;
-  margin-top:6px;
 }
 
 button{
-  background:#1f1f25;
+  background:#1f2430;
   border:1px solid var(--border);
   color:var(--text);
+  padding:4px 8px;
   font-size:12px;
-  padding:5px 8px;
   border-radius:6px;
   cursor:pointer;
 }
 
 button:hover{opacity:.85}
 
-@media(max-width:720px){
+@media(max-width:900px){
   .boss{
     grid-template-columns:1fr;
-  }
-  .countdown{
-    text-align:left;
+    gap:10px;
   }
 }
 </style>
@@ -160,8 +159,8 @@ button:hover{opacity:.85}
   <select id="filter">
     <option value="">All</option>
     <option value="Alive">Alive</option>
-    <option value="Soon">Soon</option>
-    <option value="Scheduled">Scheduled</option>
+    <option value="Respawning">Respawning</option>
+    <option value="Dead">Dead</option>
   </select>
 </div>
 
@@ -186,7 +185,7 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Admin password")==="UGzAdmin") isAdmin=true;
 }
 
-/* Boss list (unchanged) */
+/* Boss list — unchanged */
 const bosses = [
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -232,6 +231,7 @@ bosses.forEach(async b=>{
   onSnapshot(ref,s=>{data[b.n]=s.data();render();});
 });
 
+/* Logic */
 function parseTime(str){
   const [d,t]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -256,14 +256,14 @@ function nextSpawn(b){
 
 function status(b){
   const d=nextSpawn(b)-Date.now();
-  if(d<=0) return ["Alive","var(--green)"];
-  if(d<=18000000) return ["Soon","var(--yellow)"];
-  return ["Scheduled","var(--red)"];
+  if(d<=0) return ["Alive","alive","var(--green)"];
+  if(d<=18000000) return ["Respawning","soon","var(--orange)"];
+  return ["Dead","dead","var(--red)"];
 }
 
 function countdown(b){
   const d=nextSpawn(b)-Date.now();
-  if(d<=0) return "Alive";
+  if(d<=0) return "Now";
   const h=Math.floor(d/3600000);
   const m=Math.floor((d%3600000)/60000);
   return `${h}h ${m}m`;
@@ -272,37 +272,39 @@ function countdown(b){
 window.killBoss=n=>updateDoc(doc(db,"bosses",n),{lastKill:Date.now()});
 window.resetBoss=n=>confirm("Reset?")&&updateDoc(doc(db,"bosses",n),{lastKill:0});
 
+/* Render */
 const search=document.getElementById("search");
 const filter=document.getElementById("filter");
 
 function render(){
   const root=document.getElementById("list");
   root.innerHTML="";
-  ["Alive","Soon","Scheduled"].forEach(sec=>{
-    bosses.filter(b=>{
-      if(status(b)[0]!==sec) return false;
-      if(filter.value && filter.value!==sec) return false;
-      if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return false;
-      return true;
-    }).forEach(b=>{
-      const [t,col]=status(b);
-      root.innerHTML+=`
-      <div class="boss">
-        <div class="name">
-          <strong>${b.n}</strong>
-          <small>${b.l}</small>
-          ${isAdmin?`<div class="actions">
-            <button onclick="killBoss('${b.n}')">Kill</button>
-            <button onclick="resetBoss('${b.n}')">Reset</button>
-          </div>`:""}
-        </div>
-        <div class="meta">
-          <span class="badge"><span class="dot" style="background:${col}"></span>${t}</span>
-          <span>${b.h?b.h+"h":"Fixed"}</span>
-        </div>
-        <div class="countdown">${countdown(b)}</div>
-      </div>`;
-    });
+  bosses.forEach(b=>{
+    const [t,cls,col]=status(b);
+    if(filter.value && filter.value!==t) return;
+    if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
+
+    root.innerHTML+=`
+    <div class="boss ${cls}">
+      <div class="boss-name">
+        <strong>${b.n}</strong>
+        <small>${b.l}</small>
+        ${isAdmin?`<div class="actions">
+          <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="resetBoss('${b.n}')">Reset</button>
+        </div>`:""}
+      </div>
+
+      <div class="status">
+        <span class="dot" style="background:${col}"></span>${t}
+      </div>
+
+      <div class="time">${countdown(b)}</div>
+
+      <div class="schedule">
+        ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
+      </div>
+    </div>`;
   });
 }
 
@@ -311,4 +313,3 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
-
