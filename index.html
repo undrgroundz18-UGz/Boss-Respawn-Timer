@@ -214,6 +214,10 @@ function render(){
 function isFixedBoss(b){
   return Array.isArray(b.ft) && b.ft.length > 0;
 }
+  function isDynamicBoss(b){
+  return !Array.isArray(b.ft);
+}
+
   
   /* ================================
      FIXED RESPAWNS TODAY (NEW)
@@ -284,6 +288,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
