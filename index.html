@@ -38,7 +38,6 @@ input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px;
    <button id="resetAllBtn" style="display:none">Reset All</button>
 </div>
 <div id="list"></div>
-  </div>
 </div>
 
 <script type="module">
@@ -63,7 +62,12 @@ let isAdmin = false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
-const resetAllBtn = document.getElementById("resetAllBtn");
+
+
+  
+// Boss list
+const bosses = [
+  const resetAllBtn = document.getElementById("resetAllBtn");
 
 if(isAdmin && resetAllBtn){
   resetAllBtn.style.display="inline-block";
@@ -75,10 +79,6 @@ if(isAdmin && resetAllBtn){
     alert("All bosses reset.");
   };
 }
-
-  
-// Boss list
-const bosses = [
   // Hourly bosses
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -229,13 +229,13 @@ function render(){
       </div>
     `;
     fixedToday.forEach(b=>{
-      const [t,cls,col]=status(b);
+      const [t,cls,col]=getStatus(b);
       sec.innerHTML+=`
         <div class="boss ${cls}">
           <div class="boss-name"><strong>${b.n}</strong></div>
           <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
           <div class="time">${b.ft.join(", ")}</div>
-          <div class="time">${countdown(b)}</div>
+          <div class="time">${formatCountdown(b)}</div>
         </div>
       `;
     });
@@ -279,5 +279,6 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
