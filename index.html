@@ -247,8 +247,10 @@ function render(){
      ================================ */
   bosses.forEach(b=>{
   if(isTodayFixedBoss(b)) return; // prevents duplication
-    if(filter.value && filter.value!==t) return;
-    if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
+    const [t,cls,col] = getStatus(b);
+    if(filterSelect.value && filterSelect.value!==t) return;
+if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
+
 
     root.innerHTML+=`
     <div class="boss ${cls}">
@@ -279,6 +281,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
