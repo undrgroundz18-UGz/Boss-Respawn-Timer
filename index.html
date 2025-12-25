@@ -22,7 +22,7 @@
 
 body{
   margin:0;
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
   background:var(--bg);
   color:var(--text);
 }
@@ -57,20 +57,20 @@ input,select{
 }
 
 .section{
-  margin-top:28px;
+  margin-top:26px;
 }
 
 .section h2{
   font-size:12px;
   letter-spacing:.14em;
   color:var(--muted);
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
 
 /* ===== Boss Row ===== */
 .boss{
   display:grid;
-  grid-template-columns: 1.6fr .8fr 1fr .9fr;
+  grid-template-columns: 1.6fr .7fr .8fr 1fr;
   gap:14px;
   align-items:center;
   padding:14px 16px;
@@ -112,8 +112,14 @@ input,select{
 
 /* Time */
 .time{
-  font-size:14px;
+  font-size:15px;
   font-weight:600;
+}
+
+/* Schedule */
+.schedule{
+  font-size:13px;
+  color:var(--muted);
 }
 
 /* Admin buttons */
@@ -158,15 +164,7 @@ button:hover{opacity:.85}
   </select>
 </div>
 
-<div class="section">
-  <h2>Fixed Respawns Today</h2>
-  <div id="fixedToday"></div>
-</div>
-
-<div class="section">
-  <h2>All Bosses</h2>
-  <div id="list"></div>
-</div>
+<div id="list"></div>
 </div>
 
 <script type="module">
@@ -187,7 +185,7 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Admin password")==="UGzAdmin") isAdmin=true;
 }
 
-/* Boss list */
+/* Boss list — unchanged */
 const bosses = [
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
@@ -229,7 +227,7 @@ let data={};
 bosses.forEach(async b=>{
   const ref=doc(db,"bosses",b.n);
   const snap=await getDoc(ref);
-  if(!snap.exists()) await setDoc(ref,{lastKill:0});
+  if(!snap.exists()) await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
   onSnapshot(ref,s=>{data[b.n]=s.data();render();});
 });
 
@@ -256,7 +254,7 @@ function nextSpawn(b){
   return Date.now();
 }
 
-function getStatus(b){
+function status(b){
   const d=nextSpawn(b)-Date.now();
   if(d<=0) return ["Alive","alive","var(--green)"];
   if(d<=18000000) return ["Respawning","soon","var(--orange)"];
@@ -279,15 +277,14 @@ const search=document.getElementById("search");
 const filter=document.getElementById("filter");
 
 function render(){
-  list.innerHTML="";
-  fixedToday.innerHTML="";
-
+  const root=document.getElementById("list");
+  root.innerHTML="";
   bosses.forEach(b=>{
-    const [t,cls,col]=getStatus(b);
+    const [t,cls,col]=status(b);
     if(filter.value && filter.value!==t) return;
     if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
 
-    const row=`
+    root.innerHTML+=`
     <div class="boss ${cls}">
       <div class="boss-name">
         <strong>${b.n}</strong>
@@ -297,15 +294,17 @@ function render(){
           <button onclick="resetBoss('${b.n}')">Reset</button>
         </div>`:""}
       </div>
-      <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
-      <div class="time">${new Date(nextSpawn(b)).toLocaleString()}</div>
-      <div class="time">${countdown(b)}</div>
-    </div>`;
 
-    if(b.ft && parseTime(b.ft[0]).toDateString()===new Date().toDateString()){
-      fixedToday.innerHTML+=row;
-    }
-    list.innerHTML+=row;
+      <div class="status">
+        <span class="dot" style="background:${col}"></span>${t}
+      </div>
+
+      <div class="time">${countdown(b)}</div>
+
+      <div class="schedule">
+        ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
+      </div>
+    </div>`;
   });
 }
 
