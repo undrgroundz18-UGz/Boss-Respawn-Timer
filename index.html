@@ -22,7 +22,7 @@
 
 body{
   margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
   background:var(--bg);
   color:var(--text);
 }
@@ -57,20 +57,20 @@ input,select{
 }
 
 .section{
-  margin-top:26px;
+  margin-top:28px;
 }
 
 .section h2{
   font-size:12px;
   letter-spacing:.14em;
   color:var(--muted);
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 
 /* ===== Boss Row ===== */
 .boss{
   display:grid;
-  grid-template-columns: 1.6fr .8fr 1fr 1fr;
+  grid-template-columns: 1.6fr .8fr 1fr .9fr;
   gap:14px;
   align-items:center;
   padding:14px 16px;
@@ -84,7 +84,10 @@ input,select{
 .boss.soon{border-left:5px solid var(--orange);}
 .boss.dead{border-left:5px solid var(--red);}
 
-.boss-name strong{font-size:15px;}
+.boss-name strong{
+  font-size:15px;
+}
+
 .boss-name small{
   display:block;
   font-size:12px;
@@ -92,6 +95,7 @@ input,select{
   margin-top:2px;
 }
 
+/* Status */
 .status{
   font-weight:600;
   font-size:13px;
@@ -106,16 +110,13 @@ input,select{
   border-radius:50%;
 }
 
+/* Time */
 .time{
-  font-size:15px;
+  font-size:14px;
   font-weight:600;
 }
 
-.schedule{
-  font-size:13px;
-  color:var(--muted);
-}
-
+/* Admin buttons */
 .actions{
   margin-top:6px;
   display:flex;
@@ -132,8 +133,13 @@ button{
   cursor:pointer;
 }
 
+button:hover{opacity:.85}
+
 @media(max-width:900px){
-  .boss{grid-template-columns:1fr;}
+  .boss{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
 }
 </style>
 </head>
@@ -158,8 +164,8 @@ button{
 </div>
 
 <div class="section">
-  <h2>Dynamic Respawns</h2>
-  <div id="dynamic"></div>
+  <h2>All Bosses</h2>
+  <div id="list"></div>
 </div>
 </div>
 
@@ -167,6 +173,7 @@ button{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* Firebase */
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
@@ -191,9 +198,29 @@ const bosses = [
   {n:"Ego",h:21,l:"Ulan Canyon"},
   {n:"Amentis",h:29,l:"Land of Glory"},
   {n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
+  {n:"Gareth",h:32,l:"Deadman 1"},
+  {n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
+  {n:"Catena",h:35,l:"Deadman 3"},
+  {n:"Shuliar",h:35,l:"Ruins of War"},
+  {n:"Larba",h:35,l:"Ruins of War"},
+  {n:"Titore",h:37,l:"Deadman 2"},
+  {n:"Wannitas",h:48,l:"Plateau of Revolution"},
+  {n:"Metus",h:48,l:"Plateau of Revolution"},
+  {n:"Duplican",h:48,l:"Plateau of Revolution"},
+  {n:"Secreta",h:62,l:"Silvergrass Field"},
+  {n:"Ordo",h:62,l:"Silvergrass Field"},
+  {n:"Asta",h:62,l:"Silvergrass Field"},
+  {n:"Supore",h:62,l:"Silvergrass Field"},
   {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
   {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
   {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
+  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
+  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"-"},
+  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan"},
+  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
+  {n:"Milavy",ft:["Saturday 15:00"],l:"Lower Tomb of Tyriosa 3F"},
+  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
+  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
   {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
 
@@ -206,12 +233,12 @@ bosses.forEach(async b=>{
   onSnapshot(ref,s=>{data[b.n]=s.data();render();});
 });
 
+/* Logic */
 function parseTime(str){
   const [d,t]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const now=new Date();
-  const n=new Date();
-  n.setHours(...t.split(":").map(Number),0,0);
+  const n=new Date(); n.setHours(...t.split(":").map(Number),0,0);
   let diff=(days.indexOf(d)-now.getDay()+7)%7;
   if(diff===0 && n<now) diff=7;
   n.setDate(now.getDate()+diff);
@@ -222,11 +249,14 @@ function nextSpawn(b){
   if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
   if(b.ft){
     const times=b.ft.map(f=>parseTime(f).getTime());
-    return times.find(t=>t>Date.now())||times[0]+604800000;
+    const last=data[b.n]?.lastKill||0;
+    for(let t of times) if(t>last) return t;
+    return times[0]+604800000;
   }
+  return Date.now();
 }
 
-function status(b){
+function getStatus(b){
   const d=nextSpawn(b)-Date.now();
   if(d<=0) return ["Alive","alive","var(--green)"];
   if(d<=18000000) return ["Respawning","soon","var(--orange)"];
@@ -244,14 +274,16 @@ function countdown(b){
 window.killBoss=n=>updateDoc(doc(db,"bosses",n),{lastKill:Date.now()});
 window.resetBoss=n=>confirm("Reset?")&&updateDoc(doc(db,"bosses",n),{lastKill:0});
 
+/* Render */
 const search=document.getElementById("search");
 const filter=document.getElementById("filter");
 
 function render(){
+  list.innerHTML="";
   fixedToday.innerHTML="";
-  dynamic.innerHTML="";
+
   bosses.forEach(b=>{
-    const [t,cls,col]=status(b);
+    const [t,cls,col]=getStatus(b);
     if(filter.value && filter.value!==t) return;
     if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
 
@@ -265,17 +297,15 @@ function render(){
           <button onclick="resetBoss('${b.n}')">Reset</button>
         </div>`:""}
       </div>
-      <div class="status">
-        <span class="dot" style="background:${col}"></span>${t}
-      </div>
+      <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
       <div class="time">${new Date(nextSpawn(b)).toLocaleString()}</div>
       <div class="time">${countdown(b)}</div>
     </div>`;
 
-    if(b.ft && parseTime(b.ft[0]).toDateString()===new Date().toDateString())
+    if(b.ft && parseTime(b.ft[0]).toDateString()===new Date().toDateString()){
       fixedToday.innerHTML+=row;
-    else if(b.h)
-      dynamic.innerHTML+=row;
+    }
+    list.innerHTML+=row;
   });
 }
 
