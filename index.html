@@ -7,10 +7,11 @@
 
 <style>
 :root{
-  --bg:#0f1115;
-  --panel:#181b22;
+  --bg:#0e1014;
+  --panel:#1a1d24;
+  --panel-soft:#1f2330;
   --border:#2a2f3a;
-  --text:#f1f3f6;
+  --text:#eef0f4;
   --muted:#9aa0aa;
 
   --green:#3ddc84;
@@ -22,21 +23,21 @@
 
 body{
   margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
   background:var(--bg);
   color:var(--text);
+  padding:28px 12px;
 }
 
 .app{
   max-width:1200px;
   margin:auto;
-  padding:26px 16px 60px;
 }
 
 h1{
   text-align:center;
   font-size:22px;
-  margin-bottom:20px;
+  margin-bottom:22px;
   font-weight:600;
 }
 
@@ -45,6 +46,7 @@ h1{
   gap:10px;
   margin-bottom:20px;
   flex-wrap:wrap;
+  justify-content:center;
 }
 
 input,select{
@@ -56,21 +58,34 @@ input,select{
   font-size:14px;
 }
 
+button{
+  background:var(--panel-soft);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px 12px;
+  font-size:13px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+button:hover{opacity:.85}
+
 .section{
-  margin-top:26px;
+  margin-top:28px;
 }
 
 .section h2{
   font-size:12px;
   letter-spacing:.14em;
   color:var(--muted);
-  margin-bottom:10px;
+  margin-bottom:12px;
+  text-transform:uppercase;
 }
 
-/* ===== Boss Row ===== */
+/* ===== Boss Card ===== */
 .boss{
   display:grid;
-  grid-template-columns: 1.6fr .7fr .8fr 1fr;
+  grid-template-columns: 1.6fr 1fr .8fr 1fr auto;
   gap:14px;
   align-items:center;
   padding:14px 16px;
@@ -82,7 +97,7 @@ input,select{
 
 .boss.alive{border-left:5px solid var(--green);}
 .boss.soon{border-left:5px solid var(--orange);}
-.boss.dead{border-left:5px solid var(--red);}
+.boss.scheduled{border-left:5px solid var(--red);}
 
 .boss-name strong{
   font-size:15px;
@@ -110,36 +125,17 @@ input,select{
   border-radius:50%;
 }
 
-/* Time */
-.time{
-  font-size:15px;
+/* Countdown */
+.countdown{
+  font-size:14px;
   font-weight:600;
 }
 
-/* Schedule */
-.schedule{
-  font-size:13px;
-  color:var(--muted);
-}
-
-/* Admin buttons */
+/* Admin actions */
 .actions{
-  margin-top:6px;
   display:flex;
   gap:6px;
 }
-
-button{
-  background:#1f2430;
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:4px 8px;
-  font-size:12px;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-button:hover{opacity:.85}
 
 @media(max-width:900px){
   .boss{
@@ -157,11 +153,12 @@ button:hover{opacity:.85}
 <div class="controls">
   <input id="search" placeholder="Search boss">
   <select id="filter">
-    <option value="">All</option>
+    <option value="">All Status</option>
     <option value="Alive">Alive</option>
-    <option value="Respawning">Respawning</option>
-    <option value="Dead">Dead</option>
+    <option value="Soon">Soon</option>
+    <option value="Scheduled">Scheduled</option>
   </select>
+  <button id="resetAll" style="display:none;">Reset ALL</button>
 </div>
 
 <div id="list"></div>
@@ -169,7 +166,7 @@ button:hover{opacity:.85}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* Firebase */
 const app = initializeApp({
@@ -182,11 +179,14 @@ const db = getFirestore(app);
 /* Admin */
 let isAdmin=false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
-  if(prompt("Admin password")==="UGzAdmin") isAdmin=true;
+  if(prompt("Enter admin password:")==="UGzAdmin"){
+    isAdmin=true;
+    document.getElementById("resetAll").style.display="inline-block";
+  }
 }
 
-/* Boss list — unchanged */
-const bosses = [
+/* Boss list (UNCHANGED) */
+const bosses = [ /* EXACT SAME LIST YOU PROVIDED */ 
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
@@ -224,14 +224,24 @@ const bosses = [
 
 let data={};
 
+/* Firestore init */
 bosses.forEach(async b=>{
   const ref=doc(db,"bosses",b.n);
   const snap=await getDoc(ref);
-  if(!snap.exists()) await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
+  if(!snap.exists()) await setDoc(ref,{lastKill:0});
   onSnapshot(ref,s=>{data[b.n]=s.data();render();});
 });
 
-/* Logic */
+/* Reset ALL */
+document.getElementById("resetAll").onclick=async()=>{
+  if(!confirm("RESET ALL BOSSES?")) return;
+  const batch=writeBatch(db);
+  bosses.forEach(b=>batch.update(doc(db,"bosses",b.n),{lastKill:0}));
+  await batch.commit();
+  alert("All bosses reset.");
+};
+
+/* Logic (UNCHANGED) */
 function parseTime(str){
   const [d,t]=str.split(" ");
   const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -254,23 +264,20 @@ function nextSpawn(b){
   return Date.now();
 }
 
-function status(b){
+function getStatus(b){
   const d=nextSpawn(b)-Date.now();
   if(d<=0) return ["Alive","alive","var(--green)"];
-  if(d<=18000000) return ["Respawning","soon","var(--orange)"];
-  return ["Dead","dead","var(--red)"];
+  if(d<=18000000) return ["Soon","soon","var(--orange)"];
+  return ["Scheduled","scheduled","var(--red)"];
 }
 
-function countdown(b){
+function formatCountdown(b){
   const d=nextSpawn(b)-Date.now();
-  if(d<=0) return "Now";
+  if(d<=0) return "Alive";
   const h=Math.floor(d/3600000);
   const m=Math.floor((d%3600000)/60000);
   return `${h}h ${m}m`;
 }
-
-window.killBoss=n=>updateDoc(doc(db,"bosses",n),{lastKill:Date.now()});
-window.resetBoss=n=>confirm("Reset?")&&updateDoc(doc(db,"bosses",n),{lastKill:0});
 
 /* Render */
 const search=document.getElementById("search");
@@ -279,32 +286,33 @@ const filter=document.getElementById("filter");
 function render(){
   const root=document.getElementById("list");
   root.innerHTML="";
-  bosses.forEach(b=>{
-    const [t,cls,col]=status(b);
-    if(filter.value && filter.value!==t) return;
-    if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
+  ["Alive","Soon","Scheduled"].forEach(sec=>{
+    let list=bosses.filter(b=>getStatus(b)[0]===sec);
+    if(filter.value) list=list.filter(b=>getStatus(b)[0]===filter.value);
+    if(search.value) list=list.filter(b=>b.n.toLowerCase().includes(search.value.toLowerCase()));
+    if(!list.length) return;
 
-    root.innerHTML+=`
-    <div class="boss ${cls}">
-      <div class="boss-name">
-        <strong>${b.n}</strong>
-        <small>${b.l}</small>
+    const s=document.createElement("div");
+    s.className="section";
+    s.innerHTML=`<h2>${sec}</h2>`;
+    list.forEach(b=>{
+      const [t,c,col]=getStatus(b);
+      s.innerHTML+=`
+      <div class="boss ${c}">
+        <div class="boss-name">
+          <strong>${b.n}</strong>
+          <small>${b.l}</small>
+        </div>
+        <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
+        <div class="countdown">${formatCountdown(b)}</div>
+        <div>${b.h?b.h+"h":"Fixed"}</div>
         ${isAdmin?`<div class="actions">
-          <button onclick="killBoss('${b.n}')">Kill</button>
-          <button onclick="resetBoss('${b.n}')">Reset</button>
+          <button onclick="updateDoc(doc(db,'bosses','${b.n}'),{lastKill:Date.now()})">Kill</button>
+          <button onclick="updateDoc(doc(db,'bosses','${b.n}'),{lastKill:0})">Reset</button>
         </div>`:""}
-      </div>
-
-      <div class="status">
-        <span class="dot" style="background:${col}"></span>${t}
-      </div>
-
-      <div class="time">${countdown(b)}</div>
-
-      <div class="schedule">
-        ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
-      </div>
-    </div>`;
+      </div>`;
+    });
+    root.appendChild(s);
   });
 }
 
