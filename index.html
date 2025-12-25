@@ -283,6 +283,7 @@ if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCas
         ${isAdmin?`<div class="actions">
           <button onclick="killBoss('${b.n}')">Kill</button>
           <button onclick="resetBoss('${b.n}')">Reset</button>
+          root.appendChild(dynamicSection);
         </div>`:""}
       </div>
 
@@ -304,6 +305,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
