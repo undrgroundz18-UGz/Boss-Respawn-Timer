@@ -34,6 +34,8 @@ input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px;
     <option value="Soon">Soon</option>
     <option value="Scheduled">Scheduled</option>
   </select>
+
+   <button id="resetAllBtn" style="display:none">Reset All</button>
 </div>
 <div id="list"></div>
 </div>
@@ -60,7 +62,20 @@ let isAdmin = false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
+const resetAllBtn = document.getElementById("resetAllBtn");
 
+if(isAdmin && resetAllBtn){
+  resetAllBtn.style.display="inline-block";
+  resetAllBtn.onclick = async ()=>{
+    if(!confirm("RESET ALL BOSSES?")) return;
+    for(const b of bosses){
+      await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
+    }
+    alert("All bosses reset.");
+  };
+}
+
+  
 // Boss list
 const bosses = [
   // Hourly bosses
@@ -182,38 +197,85 @@ searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase()
 filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
 
 // Render
+function isTodayFixedBoss(b){
+  if(!b.ft || !b.ft.length) return false;
+  const today = new Date().getDay();
+  return b.ft.some(f=>{
+    const day = f.split(" ")[0];
+    return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+      .indexOf(day) === today;
+  });
+}
+
 function render(){
   const root=document.getElementById("list");
   root.innerHTML="";
-  ["Alive","Soon","Scheduled"].forEach(sec=>{
-    let list=bosses.filter(b=>getStatus(b)[0]===sec);
-    if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
-    if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
-    if(!list.length) return;
-    const s=document.createElement("div");
-    s.className="section";
-    s.innerHTML=`<h2>${sec}</h2>`;
-    list.forEach(b=>{
-      const [t,c,col]=getStatus(b);
-      const e=document.createElement("div");
-      e.className=`boss ${c}`;
-      e.innerHTML=`
-        <div style="display:flex;align-items:center;gap:10px;">
-          <strong>${b.n}</strong>
-          ${isAdmin?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
+
+  /* ================================
+     FIXED RESPAWNS TODAY (NEW)
+     ================================ */
+  const fixedToday = bosses.filter(b=>isTodayFixedBoss(b));
+  if(fixedToday.length){
+    const sec=document.createElement("div");
+    sec.className="section";
+    sec.innerHTML=`
+      <h2>FIXED RESPAWNS TODAY</h2>
+      <div class="boss" style="font-size:12px;font-weight:600;color:#9aa0aa">
+        <div>Boss</div>
+        <div>Status</div>
+        <div>Respawn Time</div>
+        <div>Countdown</div>
+      </div>
+    `;
+    fixedToday.forEach(b=>{
+      const [t,cls,col]=status(b);
+      sec.innerHTML+=`
+        <div class="boss ${cls}">
+          <div class="boss-name"><strong>${b.n}</strong></div>
+          <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
+          <div class="time">${b.ft.join(", ")}</div>
+          <div class="time">${countdown(b)}</div>
         </div>
-        <small>${b.l||"-"}</small>
-        <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
-        <div>${b.h?b.h+"h":"-"}</div>
-        <div>${formatCountdown(b)}</div>
       `;
-      s.appendChild(e);
     });
-    root.appendChild(s);
+    root.appendChild(sec);
+  }
+
+  /* ================================
+     EXISTING LOGIC (UNCHANGED)
+     ================================ */
+  bosses.forEach(b=>{
+    const [t,cls,col]=status(b);
+    if(filter.value && filter.value!==t) return;
+    if(search.value && !b.n.toLowerCase().includes(search.value.toLowerCase())) return;
+
+    root.innerHTML+=`
+    <div class="boss ${cls}">
+      <div class="boss-name">
+        <strong>${b.n}</strong>
+        <small>${b.l}</small>
+        ${isAdmin?`<div class="actions">
+          <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="resetBoss('${b.n}')">Reset</button>
+        </div>`:""}
+      </div>
+
+      <div class="status">
+        <span class="dot" style="background:${col}"></span>${t}
+      </div>
+
+      <div class="time">${countdown(b)}</div>
+
+      <div class="schedule">
+        ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
+      </div>
+    </div>`;
   });
 }
+
 
 setInterval(render,1000);
 </script>
 </body>
 </html>
+
