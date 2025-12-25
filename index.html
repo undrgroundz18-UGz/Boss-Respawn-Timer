@@ -1,135 +1,114 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
-
 <style>
-body{
-  font-family: system-ui, Arial, sans-serif;
-  background:#0f0f0f;
-  color:#eee;
-  padding:24px 10px;
-}
-.app{
-  max-width:1200px;
-  margin:auto;
-  background:#1b1b1b;
-  border-radius:20px;
-  padding:24px;
-  box-shadow:0 20px 60px rgba(0,0,0,.8);
-}
-h1{
-  text-align:center;
-  margin-bottom:18px;
-}
-.section{
-  margin-top:28px;
-}
-.section h2{
-  font-size:12px;
-  letter-spacing:.08em;
-  color:#aaa;
-  text-transform:uppercase;
-  margin-bottom:10px;
-}
-.header, .boss{
-  display:grid;
-  grid-template-columns:1.6fr .8fr 1fr 1fr;
-  gap:12px;
-  align-items:center;
-}
-.header{
-  font-size:11px;
-  color:#888;
-  padding:8px 14px;
-}
-.boss{
-  padding:12px 14px;
-  border-radius:14px;
-  margin-bottom:8px;
-  background:#242424;
-}
-.alive{ border-left:4px solid #4caf50; }
-.soon{ border-left:4px solid #ff9800; }
-.dead{ border-left:4px solid #f44336; }
-
-.status{
-  font-weight:600;
-}
-.countdown{
-  font-variant-numeric:tabular-nums;
-}
-button{
-  background:#2b2b2b;
-  border:1px solid #444;
-  color:#eee;
-  padding:6px 10px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.top-controls{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-  gap:10px;
-  flex-wrap:wrap;
-}
+body { font-family: system-ui, Arial, sans-serif; background: #111; color: #eee; padding: 30px 10px; }
+.app { max-width: 1200px; margin: auto; background: #1e1e1e; border-radius: 22px; padding: 28px; box-shadow: 0 25px 70px rgba(0,0,0,.8); }
+h1 { text-align: center; margin-bottom: 25px; color:#fff; }
+.section { margin-top: 30px; }
+.section h2 { font-size: 13px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
+.boss { display: grid; grid-template-columns: 1.6fr .9fr .9fr 1fr auto; gap: 12px; padding: 14px; border-radius: 14px; margin-bottom: 10px; align-items: center; background: linear-gradient(90deg, rgba(50,50,50,0.9), rgba(30,30,30,0.9)); }
+.alive { background: linear-gradient(90deg, rgba(76,175,80,0.22), rgba(30,30,30,0.9)); }
+.soon { background: linear-gradient(90deg, rgba(255,193,7,0.22), rgba(30,30,30,0.9)); }
+.scheduled { background: linear-gradient(90deg, rgba(244,67,54,0.22), rgba(30,30,30,0.9)); }
+.status { font-weight: bold; display: flex; align-items: center; gap: 6px; color:#eee; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+small { color: #aaa; }
+button { padding: 6px 10px; background: #2b2b2b; color: #eee; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; cursor: pointer; }
+input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px; }
+.search-filter { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 </style>
 </head>
-
 <body>
 <div class="app">
 <h1>Boss Respawn Timer</h1>
-
-<div class="top-controls" id="adminControls"></div>
-
-<div id="content"></div>
+<div class="search-filter">
+  <input id="search" type="text" placeholder="Search boss...">
+  <select id="filter">
+    <option value="">All Statuses</option>
+    <option value="Alive">Alive</option>
+    <option value="Soon">Soon</option>
+    <option value="Scheduled">Scheduled</option>
+  </select>
+</div>
+<div id="list"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* Firebase */
+// ===== Firebase config =====
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
   projectId:"boss-respawn-timer",
-  storageBucket:"boss-respawn-timer.firebasestorage.app",
-  messagingSenderId:"767083470052",
-  appId:"1:767083470052:web:17d7453fe66700321760f1"
+  storageBucket: "boss-respawn-timer.firebasestorage.app",
+  messagingSenderId: "767083470052",
+  appId: "1:767083470052:web:17d7453fe66700321760f1",
+  measurementId: "G-KPH3R4MRBZ"
 });
 const db = getFirestore(app);
+// ===========================
 
-/* Admin */
-let isAdmin=false;
+// Admin mode
+let isAdmin = false;
 if(new URLSearchParams(location.search).get("admin")==="1"){
   if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
 }
-if(isAdmin){
-  document.getElementById("adminControls").innerHTML =
-    `<button onclick="resetAll()">RESET ALL BOSSES</button>`;
-}
 
-/* Boss data */
+// Boss list
 const bosses = [
-  {n:"Venatus",h:10},{n:"Viorent",h:10},{n:"Livera",h:24},
-  {n:"Ringor",ft:["Saturday 17:00"]},
-  {n:"Roderick",ft:["Friday 19:00"]},
-  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"]}
+  // Hourly bosses
+  {n:"Venatus",h:10,l:"Corrupted Basin"},
+  {n:"Viorent",h:10,l:"Crescent Lake"},
+  {n:"Livera",h:24,l:"Protector's Ruins"},
+  {n:"Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
+  {n:"Undomiel",h:24,l:"Secret Lab"},
+  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
+  {n:"Ego",h:21,l:"Ulan Canyon"},
+  {n:"Amentis",h:29,l:"Land of Glory"},
+  {n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
+  {n:"Gareth",h:32,l:"Deadman 1"},
+  {n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
+  {n:"Catena",h:35,l:"Deadman 3"},
+  {n:"Shuliar",h:35,l:"Ruins of War"},
+  {n:"Larba",h:35,l:"Ruins of War"},
+  {n:"Titore",h:37,l:"Deadman 2"},
+  {n:"Wannitas",h:48,l:"Plateau of Revolution"},
+  {n:"Metus",h:48,l:"Plateau of Revolution"},
+  {n:"Duplican",h:48,l:"Plateau of Revolution"},
+  {n:"Secreta",h:62,l:"Silvergrass Field"},
+  {n:"Ordo",h:62,l:"Silvergrass Field"},
+  {n:"Asta",h:62,l:"Silvergrass Field"},
+  {n:"Supore",h:62,l:"Silvergrass Field"},
+
+  // Fixed-time bosses
+  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
+  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
+  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
+  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
+  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"-"},
+  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan"},
+  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
+  {n:"Milavy",ft:["Saturday 15:00"],l:"Lower Tomb of Tyriosa 3F"},
+  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
+  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
+  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
 
-let data={};
+let data = {};
 
-/* Init Firestore */
+// Initialize Firestore for all bosses
 bosses.forEach(async b=>{
-  const ref=doc(db,"bosses",b.n);
-  const snap=await getDoc(ref);
+  const ref = doc(db,"bosses",b.n);
+  const snap = await getDoc(ref);
   if(!snap.exists()){
-    await setDoc(ref,{lastKill:0,h:b.h||0,ft:b.ft||[]});
+    await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
   }
   onSnapshot(ref,s=>{
     data[b.n]=s.data();
@@ -137,97 +116,101 @@ bosses.forEach(async b=>{
   });
 });
 
-/* Time helpers */
-const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-function parseFT(str){
-  const [d,t]=str.split(" ");
-  const now=new Date();
-  const target=new Date();
-  target.setHours(...t.split(":").map(Number),0,0);
-  let diff=(days.indexOf(d)-now.getDay()+7)%7;
-  if(diff===0 && target<now) diff=7;
-  target.setDate(now.getDate()+diff);
-  return target;
+// Timer logic
+function parseTime(str){
+  const [day,time] = str.split(" ");
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const now = new Date();
+  const t = new Date(); t.setHours(...time.split(":").map(Number),0,0);
+  let diff = (days.indexOf(day)-now.getDay()+7)%7;
+  if(diff===0 && t<now) diff=7;
+  t.setDate(now.getDate()+diff);
+  return t;
 }
 
 function nextSpawn(b){
-  if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
-  if(b.ft){
-    const now=Date.now();
-    const times=b.ft.map(f=>parseFT(f).getTime());
-    return times.find(t=>t>now)||times[0]+7*86400000;
-  }
-  return 0;
+  try{
+    if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
+    if(b.ft){
+      const times = b.ft.map(f=>parseTime(f).getTime());
+      const lastKill = data[b.n]?.lastKill||0;
+      for(let t of times) if(t>lastKill) return t;
+      return times[0]+7*24*3600000;
+    }
+    return Date.now();
+  }catch(e){ return Date.now(); }
 }
 
-function status(b){
-  const diff=nextSpawn(b)-Date.now();
-  if(diff<=0) return ["Alive","alive"];
-  if(diff<=5*3600000) return ["Respawning","soon"];
-  return ["Dead","dead"];
+function getStatus(b){
+  const ns = nextSpawn(b);
+  const diff = ns-Date.now();
+  if(diff <=0) return ["Alive","alive","#4caf50"];
+  if(diff <=18000000) return ["Soon","soon","#ffc107"];
+  return ["Scheduled","scheduled","#f44336"];
 }
 
-function countdown(b){
-  const d=nextSpawn(b)-Date.now();
-  if(d<=0) return "Now";
-  const h=Math.floor(d/3600000);
-  const m=Math.floor(d%3600000/60000);
+function formatCountdown(b){
+  const diff = nextSpawn(b)-Date.now();
+  if(diff <=0) return "Alive";
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
   return `${h}h ${m}m`;
 }
 
-function spawnsToday(b){
-  if(!b.ft) return false;
-  const today=days[new Date().getDay()];
-  return b.ft.some(f=>f.startsWith(today));
-}
-
-/* Reset all */
-window.resetAll=async()=>{
-  if(!confirm("Reset ALL bosses?")) return;
-  const snap=await getDocs(collection(db,"bosses"));
-  snap.forEach(d=>updateDoc(d.ref,{lastKill:0}));
+// Admin actions
+window.killBoss=(bossName)=>{
+  let input = prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
+  let time = Date.now();
+  if(input){
+    const d = new Date(input);
+    if(!isNaN(d)) time = d.getTime();
+  }
+  updateDoc(doc(db,"bosses",bossName),{lastKill:time});
 };
 
-/* Render */
+window.resetBoss=(bossName)=>{
+  if(confirm("Reset boss last kill?")){
+    updateDoc(doc(db,"bosses",bossName),{lastKill:0});
+  }
+};
+
+// Search/filter
+const searchInput=document.getElementById('search');
+const filterSelect=document.getElementById('filter');
+let searchText=''; let filterStatus='';
+searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase(); render();});
+filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
+
+// Render
 function render(){
-  const root=document.getElementById("content");
+  const root=document.getElementById("list");
   root.innerHTML="";
-
-  const todayFixed=bosses.filter(b=>b.ft && spawnsToday(b));
-  const dynamic=bosses.filter(b=>b.h);
-  const otherFixed=bosses.filter(b=>b.ft && !spawnsToday(b));
-
-  drawSection("FIXED RESPAWNS TODAY",todayFixed);
-  drawSection("DYNAMIC RESPAWNS",dynamic);
-  drawSection("OTHER FIXED RESPAWNS",otherFixed);
-}
-
-function drawSection(title,list){
-  if(!list.length) return;
-  const root=document.getElementById("content");
-  const s=document.createElement("div");
-  s.className="section";
-  s.innerHTML=`
-    <h2>${title}</h2>
-    <div class="header">
-      <div>Boss</div>
-      <div>Status</div>
-      <div>Respawn Time</div>
-      <div>Countdown</div>
-    </div>`;
-  list.forEach(b=>{
-    const [t,c]=status(b);
-    const e=document.createElement("div");
-    e.className=`boss ${c}`;
-    e.innerHTML=`
-      <div><strong>${b.n}</strong></div>
-      <div class="status">${t}</div>
-      <div>${b.h?b.h+"h":(b.ft||[]).join(", ")}</div>
-      <div class="countdown">${countdown(b)}</div>`;
-    s.appendChild(e);
+  ["Alive","Soon","Scheduled"].forEach(sec=>{
+    let list=bosses.filter(b=>getStatus(b)[0]===sec);
+    if(filterStatus) list=list.filter(b=>getStatus(b)[0]===filterStatus);
+    if(searchText) list=list.filter(b=>b.n.toLowerCase().includes(searchText));
+    if(!list.length) return;
+    const s=document.createElement("div");
+    s.className="section";
+    s.innerHTML=`<h2>${sec}</h2>`;
+    list.forEach(b=>{
+      const [t,c,col]=getStatus(b);
+      const e=document.createElement("div");
+      e.className=`boss ${c}`;
+      e.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;">
+          <strong>${b.n}</strong>
+          ${isAdmin?'<button onclick="killBoss(\''+b.n+'\')">Killed</button><button onclick="resetBoss(\''+b.n+'\')">Reset</button>':''}
+        </div>
+        <small>${b.l||"-"}</small>
+        <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
+        <div>${b.h?b.h+"h":"-"}</div>
+        <div>${formatCountdown(b)}</div>
+      `;
+      s.appendChild(e);
+    });
+    root.appendChild(s);
   });
-  root.appendChild(s);
 }
 
 setInterval(render,1000);
