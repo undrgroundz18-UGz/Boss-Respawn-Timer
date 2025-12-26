@@ -129,7 +129,6 @@ bosses.forEach(async b=>{
   }
   onSnapshot(ref,s=>{
     data[b.n]=s.data();
-    render();
   });
 });
 
@@ -279,6 +278,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
