@@ -164,6 +164,10 @@ function getStatus(b){
   if(diff <=18000000) return ["Soon","soon","#ffc107"];
   return ["Scheduled","scheduled","#f44336"];
 }
+  
+  function timeUntilSpawn(b){
+  return nextSpawn(b) - Date.now();
+}
 
 function formatCountdown(b){
   const diff = nextSpawn(b)-Date.now();
@@ -225,9 +229,31 @@ function render(){
     else dynamic.push(b);
   });
 
-  if(todayFixed.length) root.appendChild(renderSection("FIXED RESPAWNS TODAY", todayFixed));
-  if(dynamic.length) root.appendChild(renderSection("DYNAMIC BOSSES", dynamic));
-  if(otherFixed.length) root.appendChild(renderSection("OTHER FIXED TIMERS", otherFixed));
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+function sortByPriority(list){
+  return list.sort((a,b)=>{
+    const ta = timeUntilSpawn(a);
+    const tb = timeUntilSpawn(b);
+
+    const aSoon = ta > 0 && ta <= TWELVE_HOURS;
+    const bSoon = tb > 0 && tb <= TWELVE_HOURS;
+
+    if(aSoon && !bSoon) return -1;
+    if(!aSoon && bSoon) return 1;
+
+    return ta - tb; // soonest first
+  });
+}
+
+if(todayFixed.length)
+  root.appendChild(renderSection("FIXED RESPAWNS TODAY", sortByPriority(todayFixed)));
+
+if(dynamic.length)
+  root.appendChild(renderSection("DYNAMIC BOSSES", sortByPriority(dynamic)));
+
+if(otherFixed.length)
+  root.appendChild(renderSection("OTHER FIXED TIMERS", sortByPriority(otherFixed)));
 }
 
   function renderSection(title, list){
@@ -278,6 +304,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
