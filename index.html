@@ -119,21 +119,6 @@ if(isAdmin && resetAllBtn){
 
 let data = {};
 
-  /* ================================
-   DYNAMIC BOSSES
-   ================================ */
-const dynamicSection = document.createElement("div");
-dynamicSection.className = "section";
-dynamicSection.innerHTML = `
-  <h2>DYNAMIC BOSSES</h2>
-  <div class="boss" style="font-size:12px;font-weight:600;color:#9aa0aa">
-    <div>Boss</div>
-    <div>Status</div>
-    <div>Respawn Time</div>
-    <div>Countdown</div>
-  </div>
-`;
-
 
 // Initialize Firestore for all bosses
 bosses.forEach(async b=>{
@@ -209,20 +194,11 @@ window.resetBoss=(bossName)=>{
 // Search/filter
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
-let searchText=''; let filterStatus='';
 searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase(); render();});
 filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
 
 // Render
-function isTodayFixedBoss(b){
-  if(!b.ft || !b.ft.length) return false;
-  const today = new Date().getDay();
-  return b.ft.some(f=>{
-    const day = f.split(" ")[0];
-    return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
-      .indexOf(day) === today;
-  });
-}
+
   const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 function isFixedBoss(b){
@@ -299,77 +275,11 @@ function render(){
 }
 
 
-  
-  /* ================================
-     FIXED RESPAWNS TODAY (NEW)
-     ================================ */
-  const fixedToday = bosses.filter(b=>isTodayFixedBoss(b));
-  if(fixedToday.length){
-    const sec=document.createElement("div");
-    sec.className="section";
-    sec.innerHTML=`
-      <h2>FIXED RESPAWNS TODAY</h2>
-      <div class="boss" style="font-size:12px;font-weight:600;color:#9aa0aa">
-        <div>Boss</div>
-        <div>Status</div>
-        <div>Respawn Time</div>
-        <div>Countdown</div>
-      </div>
-    `;
-    fixedToday.forEach(b=>{
-      const [t,cls,col]=getStatus(b);
-      sec.innerHTML+=`
-        <div class="boss ${cls}">
-          <div class="boss-name"><strong>${b.n}</strong></div>
-          <div class="status"><span class="dot" style="background:${col}"></span>${t}</div>
-          <div class="time">${b.ft.join(", ")}</div>
-          <div class="time">${formatCountdown(b)}</div>
-        </div>
-      `;
-    });
-    root.appendChild(sec);
-  }
-
-  /* ================================
-     EXISTING LOGIC (UNCHANGED)
-     ================================ */
-  bosses.forEach(b=>{
-  if(isTodayFixedBoss(b)) return; // prevents duplication
-    const [t,cls,col] = getStatus(b);
-    if(filterSelect.value && filterSelect.value!==t) return;
-if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
-  
-
-    dynamicSection.innerHTML+=`
-    <div class="boss ${cls}">
-      <div class="boss-name">
-        <strong>${b.n}</strong>
-        <small>${b.l}</small>
-        ${isAdmin?`<div class="actions">
-          <button onclick="killBoss('${b.n}')">Kill</button>
-          <button onclick="resetBoss('${b.n}')">Reset</button>
-          root.appendChild(dynamicSection);
-        </div>`:""}
-      </div>
-
-      <div class="status">
-        <span class="dot" style="background:${col}"></span>${t}
-      </div>
-
-      <div class="time">${formatCountdown(b)}</div>
-
-      <div class="schedule">
-        ${b.h?`Every ${b.h}h`:b.ft.join(", ")}
-      </div>
-    </div>`;
-  });
-}
-
-
 setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
