@@ -163,6 +163,11 @@ function nextSpawn(b){
   }catch(e){ return Date.now(); }
 }
 
+  function timeUntilSpawn(b){
+  return nextSpawn(b) - Date.now();
+}
+
+  
 function getStatus(b){
   const diff = timeUntilSpawn(b);
 
@@ -342,6 +347,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
