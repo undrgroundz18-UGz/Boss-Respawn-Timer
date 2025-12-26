@@ -33,6 +33,7 @@ input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px;
     <option value="">All Statuses</option>
     <option value="Alive">Alive</option>
     <option value="Soon">Soon</option>
+    <option value="Today">Today</option>
     <option value="Scheduled">Scheduled</option>
   </select>
 
@@ -181,14 +182,6 @@ function getStatus(b){
 }
 
 
-  
-  function timeUntilSpawn(b){
-  return nextSpawn(b) - Date.now();
-}
-
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-const THREE_HOURS = 3 * 60 * 60 * 1000;
-
 function formatCountdown(b){
   const diff = nextSpawn(b)-Date.now();
   if(diff <=0) return "Alive";
@@ -217,9 +210,10 @@ window.resetBoss=(bossName)=>{
 // Search/filter
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
-searchInput.addEventListener('input',e=>{searchText=e.target.value.toLowerCase(); render();});
-filterSelect.addEventListener('change',e=>{filterStatus=e.target.value; render();});
+searchInput.addEventListener('input', render);
+filterSelect.addEventListener('change', render);
 
+  
 // Render
 
   const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -348,6 +342,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
