@@ -6,23 +6,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
 <style>
-body { font-family: system-ui, Arial, sans-serif; background: #111; color: #eee; padding: 30px 10px; }
-.app { max-width: 1200px; margin: auto; background: #1e1e1e; border-radius: 22px; padding: 28px; box-shadow: 0 25px 70px rgba(0,0,0,.8); }
-h1 { text-align: center; margin-bottom: 25px; color:#fff; }
-.section { margin-top: 30px; }
-.section h2 { font-size: 13px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
-.boss { display: grid; grid-template-columns: 1.6fr .9fr .9fr 1fr auto; gap: 12px; padding: 14px; border-radius: 14px; margin-bottom: 10px; align-items: center; background: linear-gradient(90deg, rgba(50,50,50,0.9), rgba(30,30,30,0.9)); }
-.alive { background: linear-gradient(90deg, rgba(76,175,80,0.22), rgba(30,30,30,0.9)); }
-.soon { background: linear-gradient(90deg, rgba(255,152,0,0.22), rgba(30,30,30,0.9)); }
-.today {background: linear-gradient(90deg, rgba(255,193,7,0.22), rgba(30,30,30,0.9)); }
-.scheduled { background: linear-gradient(90deg, rgba(244,67,54,0.22), rgba(30,30,30,0.9)); }
-.status { font-weight: bold; display: flex; align-items: center; gap: 6px; color:#eee; }
-.dot { width: 12px; height: 12px; border-radius: 50%; }
-small { color: #aaa; }
-button { padding: 6px 10px; background: #2b2b2b; color: #eee; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; cursor: pointer; }
-input, select { padding: 8px; border-radius: 8px; border: none; font-size: 14px; }
-.search-filter { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+body {
+  font-family: system-ui, Arial, sans-serif;
+  background: #111;
+  color: #eee;
+  padding: 18px 8px;
+}
+
+.app {
+  max-width: 1000px;
+  margin: auto;
+  background: #1b1c1f;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .8);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 18px;
+  font-size: 20px;
+  color: #fff;
+}
+
+.search-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+input, select, button {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: #212327;
+  color: #eee;
+}
+
+button:hover {
+  opacity: .87;
+}
+
+.section {
+  margin-top: 18px;
+}
+
+.section h2 {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.boss {
+  display: grid;
+  grid-template-columns: 1.6fr .8fr .9fr .9fr auto;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(40,40,40,0.9), rgba(28,28,28,0.9));
+}
+
+.boss-name strong {
+  font-size: 14px;
+}
+
+.boss-name small {
+  display: block;
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.time, .schedule {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.boss.alive {
+  border-left: 4px solid #4caf50;
+}
+.boss.soon {
+  border-left: 4px solid #ff9800;
+}
+.boss.today {
+  border-left: 4px solid #ffc107;
+}
+.boss.scheduled {
+  border-left: 4px solid #f44336;
+}
+
+@media(max-width:900px){
+  .boss {
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+}
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -348,6 +448,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
