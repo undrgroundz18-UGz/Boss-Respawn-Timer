@@ -223,16 +223,81 @@ function isTodayFixedBoss(b){
       .indexOf(day) === today;
   });
 }
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-function render(){
-  const root=document.getElementById("list");
-  root.innerHTML="";
 function isFixedBoss(b){
   return Array.isArray(b.ft) && b.ft.length > 0;
 }
-  function isDynamicBoss(b){
-  return !Array.isArray(b.ft);
+
+function isTodayFixedBoss(b){
+  if(!isFixedBoss(b)) return false;
+  const today = days[new Date().getDay()];
+  return b.ft.some(f => f.startsWith(today));
 }
+
+
+function render(){
+  const root = document.getElementById("list");
+  root.innerHTML = "";
+
+  const todayFixed = [];
+  const dynamic = [];
+  const otherFixed = [];
+
+  bosses.forEach(b=>{
+    if(isTodayFixedBoss(b)) todayFixed.push(b);
+    else if(isFixedBoss(b)) otherFixed.push(b);
+    else dynamic.push(b);
+  });
+
+  if(todayFixed.length) root.appendChild(renderSection("FIXED RESPAWNS TODAY", todayFixed));
+  if(dynamic.length) root.appendChild(renderSection("DYNAMIC BOSSES", dynamic));
+  if(otherFixed.length) root.appendChild(renderSection("OTHER FIXED TIMERS", otherFixed));
+}
+
+  function renderSection(title, list){
+  const sec = document.createElement("div");
+  sec.className = "section";
+
+  sec.innerHTML = `
+    <h2>${title}</h2>
+    <div class="boss" style="font-size:12px;font-weight:600;color:#9aa0aa">
+      <div>Boss</div>
+      <div>Status</div>
+      <div>Respawn</div>
+      <div>Countdown</div>
+      ${isAdmin ? "<div>Actions</div>" : ""}
+    </div>
+  `;
+
+  list.forEach(b=>{
+    const [t,cls,col] = getStatus(b);
+    if(filterSelect.value && filterSelect.value !== t) return;
+    if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
+
+    sec.innerHTML += `
+      <div class="boss ${cls}">
+        <div>
+          <strong>${b.n}</strong>
+          <small>${b.l}</small>
+        </div>
+        <div class="status">
+          <span class="dot" style="background:${col}"></span>${t}
+        </div>
+        <div>${b.h ? `Every ${b.h}h` : b.ft.join(", ")}</div>
+        <div>${formatCountdown(b)}</div>
+        ${isAdmin ? `
+        <div>
+          <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="resetBoss('${b.n}')">Reset</button>
+        </div>` : ""}
+      </div>
+    `;
+  });
+
+  return sec;
+}
+
 
   
   /* ================================
@@ -305,6 +370,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
