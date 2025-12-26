@@ -158,16 +158,32 @@ function nextSpawn(b){
 }
 
 function getStatus(b){
-  const ns = nextSpawn(b);
-  const diff = ns-Date.now();
-  if(diff <=0) return ["Alive","alive","#4caf50"];
-  if(diff <=18000000) return ["Soon","soon","#ffc107"];
+  const diff = timeUntilSpawn(b);
+
+  if(diff <= 0){
+    return ["Alive","alive","#4caf50"];
+  }
+
+  // Almost respawning (within 3 hours)
+  if(diff <= THREE_HOURS){
+    return ["Soon","soon","#ff9800"]; // ORANGE
+  }
+
+  // Almost respawning (within 24 hours)
+  if(diff <= TWENTY_FOUR_HOURS){
+    return ["Soon","soon","#ffc107"]; // YELLOW
+  }
+
   return ["Scheduled","scheduled","#f44336"];
 }
+
   
   function timeUntilSpawn(b){
   return nextSpawn(b) - Date.now();
 }
+
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+const THREE_HOURS = 3 * 60 * 60 * 1000;
 
 function formatCountdown(b){
   const diff = nextSpawn(b)-Date.now();
@@ -249,8 +265,32 @@ function sortByPriority(list){
 if(todayFixed.length)
   root.appendChild(renderSection("FIXED RESPAWNS TODAY", sortByPriority(todayFixed)));
 
+function sortDynamicBosses(list){
+  return list.sort((a,b)=>{
+    const ta = timeUntilSpawn(a);
+    const tb = timeUntilSpawn(b);
+
+    // Alive first
+    if(ta <= 0 && tb > 0) return -1;
+    if(tb <= 0 && ta > 0) return 1;
+
+    // Almost respawning (within 24h)
+    const aSoon = ta > 0 && ta <= TWENTY_FOUR_HOURS;
+    const bSoon = tb > 0 && tb <= TWENTY_FOUR_HOURS;
+
+    if(aSoon && !bSoon) return -1;
+    if(!aSoon && bSoon) return 1;
+
+    // Otherwise soonest first
+    return ta - tb;
+  });
+}
+
 if(dynamic.length)
-  root.appendChild(renderSection("DYNAMIC BOSSES", sortByPriority(dynamic)));
+  root.appendChild(
+    renderSection("DYNAMIC BOSSES", sortDynamicBosses(dynamic))
+  );
+
 
 if(otherFixed.length)
   root.appendChild(renderSection("OTHER FIXED TIMERS", sortByPriority(otherFixed)));
@@ -304,6 +344,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
