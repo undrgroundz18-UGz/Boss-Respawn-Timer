@@ -161,21 +161,20 @@ function getStatus(b){
   const diff = timeUntilSpawn(b);
 
   if(diff <= 0){
-    return ["Alive","alive","#4caf50"];
+    return ["Alive","alive","#4caf50"]; // GREEN
   }
 
-  // Almost respawning (within 3 hours)
   if(diff <= THREE_HOURS){
-    return ["Soon","soon","#ff9800"]; // ORANGE
+    return ["Soon","soon","#ff9800"]; // ORANGE (≤ 3h)
   }
 
-  // Almost respawning (within 24 hours)
   if(diff <= TWENTY_FOUR_HOURS){
-    return ["Soon","soon","#ffc107"]; // YELLOW
+    return ["Today","today","#ffc107"]; // YELLOW (≤ 24h)
   }
 
-  return ["Scheduled","scheduled","#f44336"];
+  return ["Scheduled","scheduled","#f44336"]; // RED
 }
+
 
   
   function timeUntilSpawn(b){
@@ -344,6 +343,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
