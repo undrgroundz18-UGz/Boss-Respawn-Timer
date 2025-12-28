@@ -5,6 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
 <style>
+  /* === STICKY GLASS HEADER === */
+.sticky-header{
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(20,20,20,0.6);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* compact look */
+header h1{
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+/* color warning when near respawn */
+.soon{
+  color: #ffb347 !important;
+}
+.now{
+  color: #4cff4c !important;
+}
+
 body {
   font-family: system-ui, Arial, sans-serif;
   background: #111;
@@ -482,6 +507,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
