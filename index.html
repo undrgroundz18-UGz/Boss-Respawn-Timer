@@ -1,25 +1,3 @@
-hi chat need nako og ma tarong ni akong boss respawn timer 
-Need ma sort ang dynamic bosses based on "respawn" time
-nya chat e balhin ang Kransia Bosses sa pinaka ubos ing ani chat ay
-
-FIXED RESPAWN TODAY
-(ang naa dri chat kay dapat kato rang mga naay DATE like NEUTRO naa siyay tuesday og thursday mao ni kong pasabot sa day/date, nya dapat para siya ma butang diri need siya nga 24hrs nlng ang countdown)
--------------------------------------
-Dynamic Bosses
-(akong need dri chat kay ma sort siya based ghapon sa iyang "RESPAWN" time like 
-every 10h
-every 21h 
-dapat sunod siya, pero kung alive ra if dead gani so mag base ta sa countdown e sort ghapon chat nya dapat mag una ang alive before ang kanang dead)
--------------------------------------
-OTHER FIXED TIMER
-(so diri chat kay katong mga patay nga FIXED BOSS like wa siya pa siya ka sulod sa 0h-24h ba so dili pana siya ma butang adtos FIXED RESPAWN TODAY)
--------------------------------------
-KRANSIA BOSS
--------------------------------------
-(nya kani ang last kransia boss si MOTI, ICARUTHIA og NEVAEH)
-
-mao diay ni ang current nga Index.html nako sa github chat please ayaw gub'a:
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,6 +169,7 @@ if(new URLSearchParams(location.search).get("admin")==="1"){
 // Boss list
 const bosses = [
   // Hourly bosses
+  
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
@@ -434,6 +413,11 @@ function sortDynamicBosses(list){
   });
 }
 
+  function sortKransia(list){
+  const order = ["Motti","Icaruthia","Nevaeh"];
+  return list.sort((a,b)=> order.indexOf(a.n) - order.indexOf(b.n));
+}
+
 if(dynamic.length)
   root.appendChild(
     renderSection("DYNAMIC BOSSES", sortDynamicBosses(dynamic))
@@ -493,6 +477,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
