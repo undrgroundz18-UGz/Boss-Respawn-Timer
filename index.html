@@ -1,226 +1,517 @@
+hi chat need nako og ma tarong ni akong boss respawn timer 
+Need ma sort ang dynamic bosses based on "respawn" time
+nya chat e balhin ang Kransia Bosses sa pinaka ubos ing ani chat ay
+
+FIXED RESPAWN TODAY
+(ang naa dri chat kay dapat kato rang mga naay DATE like NEUTRO naa siyay tuesday og thursday mao ni kong pasabot sa day/date, nya dapat para siya ma butang diri need siya nga 24hrs nlng ang countdown)
+-------------------------------------
+Dynamic Bosses
+(akong need dri chat kay ma sort siya based ghapon sa iyang "RESPAWN" time like 
+every 10h
+every 21h 
+dapat sunod siya, pero kung alive ra if dead gani so mag base ta sa countdown e sort ghapon chat nya dapat mag una ang alive before ang kanang dead)
+-------------------------------------
+OTHER FIXED TIMER
+(so diri chat kay katong mga patay nga FIXED BOSS like wa siya pa siya ka sulod sa 0h-24h ba so dili pana siya ma butang adtos FIXED RESPAWN TODAY)
+-------------------------------------
+KRANSIA BOSS
+-------------------------------------
+(nya kani ang last kransia boss si MOTI, ICARUTHIA og NEVAEH)
+
+mao diay ni ang current nga Index.html nako sa github chat please ayaw gub'a:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
-
 <style>
-:root{
-  --bg:#0e0f13;
-  --card:#17181d;
-  --line:rgba(255,255,255,.06);
-  --text:#e6e6e6;
-  --muted:#9aa0aa;
-  --green:#4caf50;
-  --orange:#ff9800;
-  --yellow:#ffc107;
-  --red:#f44336;
+body {
+  font-family: system-ui, Arial, sans-serif;
+  background: #111;
+  color: #eee;
+  padding: 18px 8px;
 }
 
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:var(--bg);
-  color:var(--text);
+.app {
+  max-width: 1000px;
+  margin: auto;
+  background: #1b1c1f;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .8);
 }
 
-/* ===== FIXED GLASS HEADER ===== */
-header{
-  position:fixed;
-  top:0;left:0;right:0;
-  z-index:100;
-  backdrop-filter:blur(14px);
-  background:rgba(20,22,28,.65);
-  border-bottom:1px solid var(--line);
+h1 {
+  text-align: center;
+  margin-bottom: 18px;
+  font-size: 20px;
+  color: #fff;
 }
 
-.header-inner{
-  max-width:1100px;
-  margin:auto;
-  padding:10px 14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
+.search-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-header h1{
-  font-size:15px;
-  font-weight:700;
-  margin:0;
-  letter-spacing:.3px;
+input, select, button {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: #212327;
+  color: #eee;
 }
 
-/* ===== CONTENT ===== */
-.app{
-  max-width:1100px;
-  margin:70px auto 40px;
-  padding:0 10px;
+button:hover {
+  opacity: .87;
 }
 
-.section{
-  margin-top:18px;
+.section {
+  margin-top: 18px;
 }
 
-.section h2{
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.6px;
-  color:#b0b5c0;
-  margin:8px 4px;
+.section h2 {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
-/* ===== TABLE ===== */
-.table{
-  background:var(--card);
-  border-radius:12px;
-  overflow:hidden;
-  border:1px solid var(--line);
+.boss {
+  display: grid;
+  grid-template-columns: 1.6fr .8fr .9fr .9fr auto;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(40,40,40,0.9), rgba(28,28,28,0.9));
 }
 
-.row{
-  display:grid;
-  grid-template-columns:2fr 1fr 1.2fr 1fr;
-  padding:8px 12px;
-  gap:10px;
-  align-items:center;
-  font-size:13px;
+.boss-name strong {
+  font-size: 14px;
 }
 
-.row.header{
-  font-size:11px;
-  color:var(--muted);
-  background:#14161b;
-  font-weight:600;
+.boss-name small {
+  display: block;
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
 }
 
-.row:not(.header){
-  border-top:1px solid var(--line);
+.status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 12px;
 }
 
-.boss-name{font-weight:600}
-.boss-name small{
-  display:block;
-  font-size:10px;
-  color:var(--muted);
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 
-/* STATUS TEXT COLORS */
-.alive{color:var(--green)}
-.soon{color:var(--orange)}
-.today{color:var(--yellow)}
-.scheduled{color:#c36b6b}
-
-.countdown{
-  text-align:right;
-  font-variant-numeric:tabular-nums;
+.time, .schedule {
+  font-size: 13px;
+  font-weight: 600;
 }
 
-@media(max-width:800px){
-  .row{grid-template-columns:1fr}
+.boss.alive {
+  border-left: 4px solid #4caf50;
+}
+.boss.soon {
+  border-left: 4px solid #ff9800;
+}
+.boss.today {
+  border-left: 4px solid #ffc107;
+}
+.boss.scheduled {
+  border-left: 4px solid #f44336;
+}
+
+@media(max-width:900px){
+  .boss {
+    grid-template-columns:1fr;
+    gap:6px;
+  }
 }
 </style>
+
 </head>
-
 <body>
-
-<header>
-  <div class="header-inner">
-    <h1>Boss Respawn Timer</h1>
-  </div>
-</header>
-
 <div class="app">
-  <div id="list"></div>
+<h1>Boss Respawn Timer</h1>
+<div class="search-filter">
+  <input id="search" type="text" placeholder="Search boss...">
+  <select id="filter">
+    <option value="">All Statuses</option>
+    <option value="Alive">Alive</option>
+    <option value="Soon">Soon</option>
+    <option value="Today">Today</option>
+    <option value="Scheduled">Scheduled</option>
+  </select>
+
+   <button id="resetAllBtn" style="display:none">Reset All</button>
+</div>
+<div id="list"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* === FIREBASE (UNCHANGED) === */
+// ===== Firebase config =====
 const app = initializeApp({
   apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
   authDomain:"boss-respawn-timer.firebaseapp.com",
-  projectId:"boss-respawn-timer"
+  projectId:"boss-respawn-timer",
+  storageBucket: "boss-respawn-timer.firebasestorage.app",
+  messagingSenderId: "767083470052",
+  appId: "1:767083470052:web:17d7453fe66700321760f1",
+  measurementId: "G-KPH3R4MRBZ"
 });
 const db = getFirestore(app);
+// ===========================
 
-/* === ORIGINAL BOSS LIST (100% SAME ORDER) === */
+// Admin mode
+let isAdmin = false;
+if(new URLSearchParams(location.search).get("admin")==="1"){
+  if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
+}
+
+
+  
+// Boss list
 const bosses = [
+  // Hourly bosses
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
-  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
-  {n:"Ego",h:21,l:"Ulan Canyon"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
   {n:"Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
-  {n:"Undomiel",h:24,l:"Secret Lab"}
-];
+  {n:"Undomiel",h:24,l:"Secret Lab"},
+  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
+  {n:"Ego",h:21,l:"Ulan Canyon"},
+  {n:"Amentis",h:29,l:"Land of Glory"},
+  {n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
+  {n:"Gareth",h:32,l:"Deadman 1"},
+  {n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
+  {n:"Catena",h:35,l:"Deadman 3"},
+  {n:"Shuliar",h:35,l:"Ruins of War"},
+  {n:"Larba",h:35,l:"Ruins of War"},
+  {n:"Titore",h:37,l:"Deadman 2"},
+  {n:"Wannitas",h:48,l:"Plateau of Revolution"},
+  {n:"Metus",h:48,l:"Plateau of Revolution"},
+  {n:"Duplican",h:48,l:"Plateau of Revolution"},
+  {n:"Secreta",h:62,l:"Silvergrass Field"},
+  {n:"Ordo",h:62,l:"Silvergrass Field"},
+  {n:"Asta",h:62,l:"Silvergrass Field"},
+  {n:"Supore",h:62,l:"Silvergrass Field"},
 
-/* === FIRESTORE INIT === */
-const data={};
+  // Fixed-time bosses
+  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
+  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
+  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
+  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
+  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"Crescent Lake"},
+  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan"},
+  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
+  {n:"Milavy",ft:["Saturday 15:00"],l:"Lower Tomb of Tyriosa 3F"},
+  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
+  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
+  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
+];
+  const resetAllBtn = document.getElementById("resetAllBtn");
+
+if(isAdmin && resetAllBtn){
+  resetAllBtn.style.display="inline-block";
+  resetAllBtn.onclick = async ()=>{
+    if(!confirm("RESET ALL BOSSES?")) return;
+    for(const b of bosses){
+      await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
+    }
+    alert("All bosses reset.");
+  };
+}
+
+let data = {};
+
+
+// Initialize Firestore for all bosses
 bosses.forEach(async b=>{
-  const ref=doc(db,"bosses",b.n);
-  if(!(await getDoc(ref)).exists()) await setDoc(ref,{lastKill:0});
-  onSnapshot(ref,s=>data[b.n]=s.data());
+  const ref = doc(db,"bosses",b.n);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
+  }
+  onSnapshot(ref,s=>{
+    data[b.n]=s.data();
+  });
 });
 
-const H24=86400000, H3=10800000;
+  const THREE_HOURS = 3 * 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+  
+// Timer logic
+function parseTime(str){
+  const [day,time] = str.split(" ");
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const now = new Date();
+  const t = new Date(); t.setHours(...time.split(":").map(Number),0,0);
+  let diff = (days.indexOf(day)-now.getDay()+7)%7;
+  if(diff===0 && t<now) diff=7;
+  t.setDate(now.getDate()+diff);
+  return t;
+}
 
 function nextSpawn(b){
-  return (data[b.n]?.lastKill||0)+b.h*3600000;
+  try{
+    if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
+    if(b.ft){
+      const times = b.ft.map(f=>parseTime(f).getTime());
+      const lastKill = data[b.n]?.lastKill||0;
+      for(let t of times) if(t>lastKill) return t;
+      return times[0]+7*24*3600000;
+    }
+    return Date.now();
+  }catch(e){ return Date.now(); }
 }
 
-function timeUntil(b){return nextSpawn(b)-Date.now()}
-
-function status(b){
-  const d=timeUntil(b);
-  if(d<=0) return ["Alive","alive"];
-  if(d<=H3) return ["Soon","soon"];
-  if(d<=H24) return ["Today","today"];
-  return ["Scheduled","scheduled"];
+  function timeUntilSpawn(b){
+  return nextSpawn(b) - Date.now();
 }
 
-function fmt(b){
-  const d=timeUntil(b);
-  if(d<=0) return "Now!";
-  return `${Math.floor(d/3600000)}h ${Math.floor(d%3600000/60000)}m`;
+  
+function getStatus(b){
+  const diff = timeUntilSpawn(b);
+
+  if(diff <= 0){
+    return ["Alive","alive","#4caf50"]; // GREEN
+  }
+
+  if(diff <= THREE_HOURS){
+    return ["Soon","soon","#ff9800"]; // ORANGE (≤ 3h)
+  }
+
+  if(diff <= TWENTY_FOUR_HOURS){
+    return ["Today","today","#ffc107"]; // YELLOW (≤ 24h)
+  }
+
+  return ["Scheduled","scheduled","#f44336"]; // RED
 }
+
+
+function formatCountdown(b){
+  const diff = nextSpawn(b)-Date.now();
+  if(diff <=0) return "Alive";
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  return `${h}h ${m}m`;
+}
+
+// Admin actions
+window.killBoss=(bossName)=>{
+  let input = prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
+  let time = Date.now();
+  if(input){
+    const d = new Date(input);
+    if(!isNaN(d)) time = d.getTime();
+  }
+  updateDoc(doc(db,"bosses",bossName),{lastKill:time});
+};
+
+window.resetBoss=(bossName)=>{
+  if(confirm("Reset boss last kill?")){
+    updateDoc(doc(db,"bosses",bossName),{lastKill:0});
+  }
+};
+
+// Search/filter
+const searchInput=document.getElementById('search');
+const filterSelect=document.getElementById('filter');
+searchInput.addEventListener('input', render);
+filterSelect.addEventListener('change', render);
+
+  
+// Render
+
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+function isFixedBoss(b){
+  return Array.isArray(b.ft) && b.ft.length > 0;
+}
+
+function isTodayFixedBoss(b){
+  if(!isFixedBoss(b)) return false;
+  const today = days[new Date().getDay()];
+  return b.ft.some(f => f.startsWith(today));
+}
+  
+function isKransiaBoss(b){
+  return b.l === "Kransia";
+}
+
+function isFixedRespawnToday(b){
+  if(!isFixedBoss(b)) return false;
+  const today = days[new Date().getDay()];
+  if(!b.ft.some(f => f.startsWith(today))) return false;
+
+  // kinahanglan ≤ 24h nalang
+  return timeUntilSpawn(b) > 0 && timeUntilSpawn(b) <= TWENTY_FOUR_HOURS;
+}
+
 
 function render(){
-  const root=document.getElementById("list");
-  root.innerHTML="";
+  const root = document.getElementById("list");
+  root.innerHTML = "";
 
-  const sec=document.createElement("div");
-  sec.className="section";
-  sec.innerHTML=`
-    <h2>DYNAMIC BOSSES</h2>
-    <div class="table">
-      <div class="row header">
-        <div>Boss</div><div>Status</div><div>Respawn</div><div class="countdown">Countdown</div>
-      </div>
-    </div>`;
-  const table=sec.querySelector(".table");
+const todayFixed = [];
+const dynamic = [];
+const otherFixed = [];
+const kransia = [];
 
-  bosses.forEach(b=>{
-    const [st,cls]=status(b);
-    table.innerHTML+=`
-      <div class="row">
-        <div class="boss-name">${b.n}<small>${b.l}</small></div>
-        <div class="${cls}">${st}</div>
-        <div>Every ${b.h}h</div>
-        <div class="countdown ${cls}">${fmt(b)}</div>
-      </div>`;
+bosses.forEach(b=>{
+  if(isKransiaBoss(b)){
+    kransia.push(b);
+  }
+  else if(isFixedRespawnToday(b)){
+    todayFixed.push(b);
+  }
+  else if(isFixedBoss(b)){
+    otherFixed.push(b);
+  }
+  else{
+    dynamic.push(b);
+  }
+});
+
+
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+function sortByPriority(list){
+  return list.sort((a,b)=>{
+    const ta = timeUntilSpawn(a);
+    const tb = timeUntilSpawn(b);
+
+    const aSoon = ta > 0 && ta <= TWELVE_HOURS;
+    const bSoon = tb > 0 && tb <= TWELVE_HOURS;
+
+    if(aSoon && !bSoon) return -1;
+    if(!aSoon && bSoon) return 1;
+
+    return ta - tb; // soonest first
   });
-
-  root.appendChild(sec);
 }
 
+if(todayFixed.length)
+  root.appendChild(renderSection("FIXED RESPAWNS TODAY", sortByPriority(todayFixed)));
+
+function sortDynamicBosses(list){
+  return list.sort((a,b)=>{
+    const ta = timeUntilSpawn(a);
+    const tb = timeUntilSpawn(b);
+
+    // Alive first
+    if(ta <= 0 && tb > 0) return -1;
+    if(tb <= 0 && ta > 0) return 1;
+
+    // Almost respawning (within 24h)
+    const aSoon = ta > 0 && ta <= TWENTY_FOUR_HOURS;
+    const bSoon = tb > 0 && tb <= TWENTY_FOUR_HOURS;
+
+    if(aSoon && !bSoon) return -1;
+    if(!aSoon && bSoon) return 1;
+
+    // Otherwise soonest first
+    return ta - tb;
+  });
+}
+
+if(dynamic.length)
+  root.appendChild(
+    renderSection("DYNAMIC BOSSES", sortDynamicBosses(dynamic))
+  );
+
+
+if(otherFixed.length)
+  root.appendChild(renderSection("OTHER FIXED TIMERS", sortByPriority(otherFixed)));
+}
+
+  function renderSection(title, list){
+  const sec = document.createElement("div");
+  sec.className = "section";
+
+  sec.innerHTML = `
+    <h2>${title}</h2>
+    <div class="boss" style="font-size:12px;font-weight:600;color:#9aa0aa">
+      <div>Boss</div>
+      <div>Status</div>
+      <div>Respawn</div>
+      <div>Countdown</div>
+      ${isAdmin ? "<div>Actions</div>" : ""}
+    </div>
+  `;
+
+  list.forEach(b=>{
+    const [t,cls,col] = getStatus(b);
+    if(filterSelect.value && filterSelect.value !== t) return;
+    if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
+
+    sec.innerHTML += `
+      <div class="boss ${cls}">
+        <div>
+          <strong>${b.n}</strong>
+          <small>${b.l}</small>
+        </div>
+        <div class="status">
+          <span class="dot" style="background:${col}"></span>${t}
+        </div>
+        <div>${b.h ? `Every ${b.h}h` : b.ft.join(", ")}</div>
+        <div>${formatCountdown(b)}</div>
+        ${isAdmin ? `
+        <div>
+          <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="resetBoss('${b.n}')">Reset</button>
+        </div>` : ""}
+      </div>
+    `;
+  });
+
+  return sec;
+}
 render();
+
+
 setInterval(render,1000);
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
