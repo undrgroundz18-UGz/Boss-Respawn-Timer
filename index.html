@@ -145,26 +145,76 @@ button:hover {
     gap:6px;
   }
 }
+
+  /* === FLOATING GLASS HEADER === */
+.floating-header{
+  position: sticky;
+  top: 10px;
+  z-index: 999;
+  margin-bottom: 16px;
+
+  background: rgba(25,25,30,0.55);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  border-radius: 18px;
+  padding: 14px 14px 10px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+.floating-header h1{
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: .14em;
+  font-weight: 700;
+  color: #f5f7fa;
+}
+
+/* smooth color transitions */
+.boss{
+  transition: border-color .4s ease, background .4s ease;
+}
+
+.time, .status, .boss-name strong{
+  transition: color .4s ease;
+}
+
+/* subtle pulse for alive */
+.boss.alive{
+  animation: alivePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes alivePulse{
+  0%{ box-shadow: 0 0 0 rgba(76,175,80,0); }
+  50%{ box-shadow: 0 0 14px rgba(76,175,80,.25); }
+  100%{ box-shadow: 0 0 0 rgba(76,175,80,0); }
+}
+
 </style>
 
 </head>
 <body>
 <div class="app">
-<h1>Boss Respawn Timer</h1>
-<div class="search-filter">
-  <input id="search" type="text" placeholder="Search boss...">
-  <select id="filter">
-    <option value="">All Statuses</option>
-    <option value="Alive">Alive</option>
-    <option value="Soon">Soon</option>
-    <option value="Today">Today</option>
-    <option value="Scheduled">Scheduled</option>
-  </select>
 
-   <button id="resetAllBtn" style="display:none">Reset All</button>
-</div>
-<div id="list"></div>
-</div>
+<header class="floating-header">
+  <h1>BOSS RESPAWN TIMER</h1>
+
+  <div class="search-filter">
+    <input id="search" type="text" placeholder="Search boss...">
+    <select id="filter">
+      <option value="">All Statuses</option>
+      <option value="Alive">Alive</option>
+      <option value="Soon">Soon</option>
+      <option value="Today">Today</option>
+      <option value="Scheduled">Scheduled</option>
+    </select>
+    <button id="resetAllBtn" style="display:none">Reset All</button>
+  </div>
+</header>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -489,7 +539,7 @@ if(otherFixed.length)
           <span class="dot" style="background:${col}"></span>${t}
         </div>
         <div>${b.h ? `Every ${b.h}h` : b.ft.join(", ")}</div>
-        <div>${formatCountdown(b)}</div>
+        <div class="time">${formatCountdown(b)}</div>
         ${isAdmin ? `
         <div>
           <button onclick="killBoss('${b.n}')">Kill</button>
@@ -508,6 +558,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
