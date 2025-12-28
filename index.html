@@ -451,12 +451,13 @@ if(dynamic.length)
 
 if(otherFixed.length)
   root.appendChild(renderSection("OTHER FIXED TIMER", sortByPriority(otherFixed)));
-}
 
-if(kransia.length)
+
+ if(kransia.length)
   root.appendChild(
     renderSection("KRANSIA", kransia)
   );
+}
   
   function renderSection(title, list){
   const sec = document.createElement("div");
@@ -507,6 +508,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
