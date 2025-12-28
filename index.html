@@ -173,43 +173,22 @@ const db = getFirestore(app);
 
 /* ===== SAME LOGIC AS BEFORE ===== */
 
-const bosses=[/* SAME BOSS LIST */ 
+const bosses=[ /* SAME LIST AS BEFORE */ 
 {n:"Venatus",h:10,l:"Corrupted Basin"},
 {n:"Viorent",h:10,l:"Crescent Lake"},
+{n:"Livera",h:24,l:"Protector's Ruins"},
+{n:"Araneo",h:24,l:"Lower Tomb 1F"},
+{n:"Undomiel",h:24,l:"Secret Lab"},
 {n:"Lady Dalia",h:18,l:"Twilight Hill"},
 {n:"Ego",h:21,l:"Ulan Canyon"},
-{n:"Livera",h:24,l:"Protector's Ruins"},
-{n:"Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
-{n:"Undomiel",h:24,l:"Secret Lab"},
-{n:"Amentis",h:29,l:"Land of Glory"},
-{n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
 {n:"Gareth",h:32,l:"Deadman 1"},
-{n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
-{n:"Catena",h:35,l:"Deadman 3"},
-{n:"Shuliar",h:35,l:"Ruins of War"},
-{n:"Larba",h:35,l:"Ruins of War"},
-{n:"Titore",h:37,l:"Deadman 2"},
-{n:"Wannitas",h:48,l:"Plateau of Revolution"},
-{n:"Metus",h:48,l:"Plateau of Revolution"},
-{n:"Duplican",h:48,l:"Plateau of Revolution"},
-{n:"Secreta",h:62,l:"Silvergrass Field"},
-{n:"Ordo",h:62,l:"Silvergrass Field"},
-{n:"Asta",h:62,l:"Silvergrass Field"},
-{n:"Supore",h:62,l:"Silvergrass Field"},
-
-{n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
-{n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
-{n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
-{n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
-{n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"Crescent Lake"},
-{n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert"},
-{n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
-{n:"Milavy",ft:["Saturday 15:00"],l:"Lower Tomb"},
-{n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
-{n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
+{n:"Baron Braudmore",h:32,l:"Battlefield"},
+{n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Ulan"},
+{n:"Thymele",ft:["Monday 19:00"],l:"Twilight Hill"},
+{n:"Icaruthia",ft:["Tuesday 21:00"],l:"Kransia"},
+{n:"Motti",ft:["Wednesday 19:00"],l:"Kransia"},
 {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
-
 
 const data={};
 bosses.forEach(async b=>{
