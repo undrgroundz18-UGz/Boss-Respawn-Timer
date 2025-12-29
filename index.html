@@ -222,7 +222,10 @@ button:hover {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc,
+  enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ===== Firebase config =====
 const app = initializeApp({
@@ -235,6 +238,10 @@ const app = initializeApp({
   measurementId: "G-KPH3R4MRBZ"
 });
 const db = getFirestore(app);
+  enableIndexedDbPersistence(db).catch(err => {
+  console.warn("Offline persistence error:", err.code);
+});
+
 // ===========================
 
 // Admin mode
@@ -580,6 +587,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
