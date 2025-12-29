@@ -5,16 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boss Respawn Timer</title>
 <style>
-  /* === STICKY GLASS HEADER === */
-.sticky-header{
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  background: rgba(20,20,20,0.6);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
+  
 
 /* compact look */
 header h1{
@@ -53,13 +44,13 @@ h1 {
   color: #fff;
 }
 
-.search-filter {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+.search-filter{
+  display:flex;
+  gap:8px;
+  justify-content:center;
   flex-wrap: wrap;
-  justify-content: center;
 }
+
 
 input, select, button {
   padding: 6px 10px;
@@ -69,6 +60,15 @@ input, select, button {
   background: #212327;
   color: #eee;
 }
+
+  .search-filter input,
+.search-filter select,
+.search-filter button{
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  color:#fff;
+}
+
 
 button:hover {
   opacity: .87;
@@ -149,29 +149,28 @@ button:hover {
   /* === FLOATING GLASS HEADER === */
 .floating-header{
   position: sticky;
-  top: 10px;
+  top: 0;
   z-index: 999;
-  margin-bottom: 16px;
 
-  background: rgba(25,25,30,0.55);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background: rgba(30,30,35,.65);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 
-  border-radius: 18px;
-  padding: 14px 14px 10px;
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.45),
-    inset 0 0 0 1px rgba(255,255,255,.06);
+  padding: 10px 14px 12px;
+  margin-bottom: 14px;
+
+  border-bottom: 1px solid rgba(255,255,255,.08);
 }
+
 
 .floating-header h1{
   margin: 0 0 8px;
-  text-align: center;
-  font-size: 14px;
-  letter-spacing: .14em;
+  font-size: 15px;
   font-weight: 700;
-  color: #f5f7fa;
+  text-align: center;
+  letter-spacing: .12em;
 }
+
 
 /* smooth color transitions */
 .boss{
@@ -310,7 +309,7 @@ bosses.forEach(async b=>{
   });
 });
 
-  const THREE_HOURS = 3 * 60 * 60 * 1000;
+  const FOUR_HOURS = 4 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
   
@@ -351,13 +350,13 @@ function getStatus(b){
     return ["Alive","alive","#4caf50"]; // GREEN
   }
 
-  if(diff <= THREE_HOURS){
-    return ["Soon","soon","#ff9800"]; // ORANGE (≤ 3h)
-  }
+  if(diff <= FOUR_HOURS){
+  return ["Soon","soon","#ff9800"]; // ORANGE ≤ 4 HOURS
+}
 
-  if(diff <= TWENTY_FOUR_HOURS){
-    return ["Today","today","#ffc107"]; // YELLOW (≤ 24h)
-  }
+if (diff <= TWENTY_FOUR_HOURS) {
+  return ["Today", "today", "#dc3545"]; // WARNING RED – 24h before respawn
+}
 
   return ["Scheduled","scheduled","#f44336"]; // RED
 }
@@ -559,6 +558,7 @@ setInterval(render,1000);
 </script>
 </body>
 </html>
+
 
 
 
