@@ -1,4 +1,5 @@
-const CACHE_NAME = "boss-respawn-cache-v1";
+const CACHE_VERSION = "v2"; // 🔥 change this every update
+const CACHE_NAME = `boss-respawn-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
   "./",
@@ -8,31 +9,42 @@ const ASSETS = [
   "./icon-512.png"
 ];
 
-// Install – cache files
+// INSTALL
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // 🔥 force new SW
 });
 
-// Activate – clean old cache
+// ACTIVATE
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        keys.map(k => k !== CACHE_NAME && caches.delete(k))
       )
     )
   );
-  self.clients.claim();
+  self.clients.claim(); // 🔥 control open tabs
 });
 
-// Fetch – serve cached if offline
+// FETCH (network-first for HTML)
 self.addEventListener("fetch", event => {
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(res => {
-      return res || fetch(event.request);
-    })
+    caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
