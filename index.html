@@ -150,6 +150,30 @@ button:hover {
   }
 }
 
+  .net{
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  width: fit-content;
+  margin: 0 auto 8px;
+  letter-spacing: .12em;
+}
+
+.net.online{
+  background: rgba(76,175,80,.15);
+  color: #4caf50;
+  border: 1px solid rgba(76,175,80,.35);
+}
+
+.net.offline{
+  background: rgba(244,67,54,.15);
+  color: #f44336;
+  border: 1px solid rgba(244,67,54,.35);
+}
+
+
   /* === FLOATING GLASS HEADER === */
 .floating-header{
   position: sticky;
@@ -205,6 +229,8 @@ button:hover {
 <header class="floating-header">
   <h1>BOSS RESPAWN TIMER</h1>
 
+    <div id="netStatus" class="net online">ONLINE</div>
+
   <div class="search-filter">
     <input id="search" type="text" placeholder="Search boss...">
     <select id="filter">
@@ -215,7 +241,6 @@ button:hover {
       <option value="Scheduled">Scheduled</option>
     </select>
     <button id="resetAllBtn" style="display:none">Reset All</button>
-    <div id="list"></div>
   </div>
 </header>
 
@@ -583,10 +608,29 @@ setInterval(render,1000);
   });
 }
 
+// === NETWORK STATUS INDICATOR ===
+const net = document.getElementById("netStatus");
+
+function updateNetwork(){
+  if(!net) return;
+
+  if(navigator.onLine){
+    net.textContent = "ONLINE";
+    net.className = "net online";
+  }else{
+    net.textContent = "OFFLINE";
+    net.className = "net offline";
+  }
+}
+
+window.addEventListener("online", updateNetwork);
+window.addEventListener("offline", updateNetwork);
+updateNetwork();
 
 </script>
 </body>
 </html>
+
 
 
 
