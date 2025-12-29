@@ -365,17 +365,35 @@ function parseTime(str){
 }
 
 function nextSpawn(b){
-  try{
-    if(b.h) return (data[b.n]?.lastKill||0)+b.h*3600000;
-    if(b.ft){
-      const times = b.ft.map(f=>parseTime(f).getTime());
-      const lastKill = data[b.n]?.lastKill||0;
-      for(let t of times) if(t>lastKill) return t;
-      return times[0]+7*24*3600000;
-    }
-    return Date.now();
-  }catch(e){ return Date.now(); }
+  // HOURLY BOSSES (unchanged)
+  if(b.h){
+    return (data[b.n]?.lastKill || 0) + b.h * 3600000;
+  }
+
+  // FIXED-TIME BOSSES (FIXED LOGIC)
+  if(b.ft){
+    const now = Date.now();
+
+    // get all upcoming times
+    const upcoming = b.ft
+      .map(f => parseTime(f).getTime())
+      .filter(t => t > now)
+      .sort((a,b)=>a-b);
+
+    // if naa pay upcoming this week
+    if(upcoming.length) return upcoming[0];
+
+    // else, get earliest next week
+    const nextWeek = b.ft
+      .map(f => parseTime(f).getTime() + 7*24*3600000)
+      .sort((a,b)=>a-b);
+
+    return nextWeek[0];
+  }
+
+  return Date.now();
 }
+
 
   function timeUntilSpawn(b){
   return nextSpawn(b) - Date.now();
@@ -633,6 +651,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
