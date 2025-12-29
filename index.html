@@ -559,9 +559,15 @@ render();
 
 
 setInterval(render,1000);
+
+  if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
+
 </script>
 </body>
 </html>
+
 
 
 
