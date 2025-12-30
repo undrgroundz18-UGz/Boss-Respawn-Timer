@@ -616,7 +616,7 @@ if(otherFixed.length)
     sec.innerHTML += `
       <div class="boss ${cls}">
         <div>
-          <strong>${b.n}</strong>
+          <strong>👑 ${b.n}</strong>
           <small>${b.l}</small>
         </div>
         <div class="status">
@@ -626,9 +626,10 @@ if(otherFixed.length)
   ${
     b.h
     ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
-    : b.ft.join(", ")
+    : `📌 ${formatRespawnDate(nextSpawn(b))}`
   }
 </div>
+
 
         <div class="time">${formatCountdown(b)}</div>
         ${isAdmin ? `
@@ -685,6 +686,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
