@@ -616,11 +616,11 @@ if(otherFixed.length)
     sec.innerHTML += `
       <div class="boss ${cls}">
         <div>
-          <strong>${statusIcon(t)} ${b.n}</strong>
+          <strong>👑 ${b.n}</strong>
           <small>${b.l}</small>
         </div>
         <div class="status">
-          <span class="dot" style="background:${col}"></span>${statusIcon(t)} ${t}
+          <span class="dot" style="background:${col}"></span>${t}
         </div>
         <div class="schedule">
   ${
@@ -679,12 +679,6 @@ function updateNetwork(){
   }
 }
 
-  function statusIcon(status){
-  if(status==="Alive") return "🟢";
-  if(status==="Soon") return "🟠";
-  if(status==="Today") return "🔴";
-  return "⏰"; // Scheduled
-}
 
 window.addEventListener("online", updateNetwork);
 window.addEventListener("offline", updateNetwork);
@@ -693,6 +687,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
