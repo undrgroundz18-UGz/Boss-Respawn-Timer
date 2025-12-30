@@ -578,7 +578,21 @@ if(otherFixed.length)
     renderSection("KRANSIA", kransia)
   );
 }
-  
+
+  function formatRespawnDate(ts){
+  const d = new Date(ts);
+  if(isNaN(d)) return "-";
+
+  return d.toLocaleString(undefined,{
+    month:"short",
+    day:"numeric",
+    weekday:"short",
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true
+  });
+}
+
   function renderSection(title, list){
   const sec = document.createElement("div");
   sec.className = "section";
@@ -671,6 +685,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
