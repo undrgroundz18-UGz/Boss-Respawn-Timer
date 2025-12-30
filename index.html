@@ -55,6 +55,19 @@ h1 {
   flex-wrap: wrap;
 }
 
+  .schedule{
+  font-size:12px;
+  font-weight:600;
+  color:#ddd;
+  white-space:nowrap;
+}
+
+.respawn-rule{
+  color:#ffb347;
+  font-weight:700;
+  margin-left:4px;
+}
+
 
 input, select, button {
   padding: 6px 10px;
@@ -595,7 +608,14 @@ if(otherFixed.length)
         <div class="status">
           <span class="dot" style="background:${col}"></span>${t}
         </div>
-        <div>${b.h ? `Every ${b.h}h` : b.ft.join(", ")}</div>
+        <div class="schedule">
+  ${
+    b.h
+    ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
+    : b.ft.join(", ")
+  }
+</div>
+
         <div class="time">${formatCountdown(b)}</div>
         ${isAdmin ? `
         <div>
@@ -651,6 +671,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
