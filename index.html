@@ -479,6 +479,8 @@ const filterSelect=document.getElementById('filter');
 searchInput.addEventListener('input', render);
 filterSelect.addEventListener('change', render);
 
+const FOUR_HOURS = 4 * 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
   
 // Render
 
@@ -703,6 +705,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
