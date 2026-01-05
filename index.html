@@ -416,20 +416,29 @@ function nextSpawn(b){
 function getStatus(b){
   const diff = timeUntilSpawn(b);
 
+  const ONE_HOUR = 60 * 60 * 1000;
+  const FOUR_HOURS = 4 * ONE_HOUR;
+  const TWENTY_FOUR_HOURS = 24 * ONE_HOUR;
+
   if(diff <= 0){
     return ["Alive","alive","#4caf50"]; // GREEN
   }
 
+  if(diff <= ONE_HOUR){
+    return ["Very Soon","very-soon","#ff5252"]; // RED (≤ 1h)
+  }
+
   if(diff <= FOUR_HOURS){
-  return ["Soon","soon","#ff9800"]; // ORANGE ≤ 4 HOURS
+    return ["Soon","soon","#ff9800"]; // ORANGE (≤ 4h)
+  }
+
+  if(diff <= TWENTY_FOUR_HOURS){
+    return ["Today","today","#ffc107"]; // YELLOW (today)
+  }
+
+  return ["Scheduled","scheduled","#9e9e9e"]; // GRAY
 }
 
-if (diff <= TWENTY_FOUR_HOURS) {
-  return ["Today", "today", "#dc3545"]; // WARNING RED – 24h before respawn
-}
-
-  return ["Scheduled","scheduled","#f44336"]; // RED
-}
 
 
 function formatCountdown(b){
@@ -687,6 +696,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
