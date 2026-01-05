@@ -10,7 +10,15 @@
 
 <style>
   
+.boss.very-soon{
+  border-left: 4px solid #ff5252;
+}
 
+.very-soon{
+  color: #ff5252 !important;
+}
+
+  
 /* compact look */
 header h1{
   font-size: 1.2rem;
@@ -153,7 +161,7 @@ button:hover {
   border-left: 4px solid #ffc107;
 }
 .boss.scheduled {
-  border-left: 4px solid #f44336;
+  border-left: 4px solid #9e9e9e;
 }
 
 @media(max-width:900px){
@@ -250,6 +258,7 @@ button:hover {
     <select id="filter">
       <option value="">All Statuses</option>
       <option value="Alive">Alive</option>
+      <option value="Very Soon">Very Soon</option>
       <option value="Soon">Soon</option>
       <option value="Today">Today</option>
       <option value="Scheduled">Scheduled</option>
@@ -361,8 +370,6 @@ bosses.forEach(async b=>{
   });
 });
 
-  const FOUR_HOURS = 4 * 60 * 60 * 1000;
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
   
 // Timer logic
@@ -696,6 +703,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
