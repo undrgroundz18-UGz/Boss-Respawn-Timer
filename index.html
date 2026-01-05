@@ -480,15 +480,16 @@ searchInput.addEventListener('input', render);
 filterSelect.addEventListener('change', render);
 
 
-const FOUR_HOURS = 4 * 60 * 60 * 1000;
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-  
+
   
   
 // Render
 
   const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
+  const FOUR_HOURS = 4 * 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  
 function isFixedBoss(b){
   return Array.isArray(b.ft) && b.ft.length > 0;
 }
@@ -708,6 +709,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
