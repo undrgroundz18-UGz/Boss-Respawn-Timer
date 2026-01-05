@@ -390,10 +390,6 @@ function nextSpawn(b){
     return (data[b.n]?.lastKill || 0) + b.h * 3600000;
   }
 
-const FOUR_HOURS = 4 * 60 * 60 * 1000;
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-  
-  
   // FIXED-TIME BOSSES (FIXED LOGIC)
   if(b.ft){
     const now = Date.now();
@@ -484,6 +480,11 @@ searchInput.addEventListener('input', render);
 filterSelect.addEventListener('change', render);
 
 
+const FOUR_HOURS = 4 * 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  
+  
+  
 // Render
 
   const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -707,6 +708,7 @@ updateNetwork();
 </script>
 </body>
 </html>
+
 
 
 
