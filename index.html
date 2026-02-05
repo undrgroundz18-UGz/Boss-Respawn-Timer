@@ -380,18 +380,25 @@ let data = {};
 
 // Initialize Firestore for all bosses
 bosses.forEach(async b=>{
+  try{
   const ref = doc(db,"bosses",b.n);
   const snap = await getDoc(ref);
   if(!snap.exists()){
+   // Only for admin: safe to ignore for normal users
+    if(isAdmin){
     await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
+    }
   }
   onSnapshot(ref,s=>{
     data[b.n]=s.data();
-  });
+    });
+  }catch(e){
+    console.warn("Firestore read error (ignored):", e.message);
+  }
 });
 
-
   
+
 // Timer logic
 function parseTime(str){
   const [day,time] = str.split(" ");
@@ -473,20 +480,37 @@ function formatCountdown(b){
   return `${h}h ${m}m`;
 }
 
-// Admin actions
+  
+  
+// Admin actions (wrap in try/catch to avoid permission errors)
 window.killBoss = (bossName) => {
-  if (!isAdmin) {
-    alert("You are not admin!");
-    return;
-  }
+  if (!isAdmin) return;
+  try{
+    let input = prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
+    let time = Date.now();
+    if (input) {
+      const d = new Date(input);
+      if (!isNaN(d)) time = d.getTime();
+    }
+    updateDoc(doc(db, "bosses", bossName), {
+      lastKill: time,
+      adminSecret: "UGzAdmin"
+    }).catch(()=>{}); // ignore errors
+  }catch(e){ console.warn(e); }
+};
 
-  let input = prompt("Enter exact kill time (YYYY-MM-DD HH:MM) or leave blank for current time:");
-  let time = Date.now();
-  if (input) {
-    const d = new Date(input);
-    if (!isNaN(d)) time = d.getTime();
-  }
+window.resetBoss = (bossName) => {
+  if (!isAdmin) return;
+  try{
+    updateDoc(doc(db, "bosses", bossName), {
+      lastKill: 0,
+      adminSecret: "UGzAdmin"
+    }).catch(()=>{}); // ignore errors
+  }catch(e){ console.warn(e); }
+};
 
+
+  
   // Add the adminSecret to satisfy Firestore rule
   updateDoc(doc(db, "bosses", bossName), {
     lastKill: time,
@@ -782,7 +806,9 @@ function scheduleBossAlerts(boss){
         }
         // optional sound alert
         const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
+        audio.loop = true;
         audio.play().catch(()=>{}); // avoid error if blocked
+        setTimeout(()=> audio.pause(), 10000); // stop after 10s
         notified[alertKey] = true; // mark as notified
       }, delay);
     }
@@ -802,6 +828,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
