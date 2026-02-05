@@ -510,15 +510,7 @@ window.resetBoss = (bossName) => {
 };
 
 
-  
-  // Add the adminSecret to satisfy Firestore rule
-  updateDoc(doc(db, "bosses", bossName), {
-    lastKill: time,
-    adminSecret: "UGzAdmin"
-  }).catch(err => {
-    console.error("Failed to update boss:", err);
-    alert("Error: cannot update boss. Check Firestore rules!");
-  });
+
 
 window.resetBoss = (bossName) => {
   if (!isAdmin) {
@@ -827,6 +819,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
