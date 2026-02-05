@@ -310,15 +310,39 @@ const db = getFirestore(app);
   console.warn("Offline persistence error:", err.code);
 });
 
-// ===========================
 
-// Admin mode
+
+  
+// ===========================
+// 🔒 ADMIN HASH (UGzAdmin)
+const ADMIN_HASH = "e0eafba05e56420e4b0f7a8297a3822871e36348972d73b4661fcde3018d8dda";
+
 let isAdmin = false;
-if(new URLSearchParams(location.search).get("admin")==="1"){
-  if(prompt("Enter admin password:")==="UGzAdmin") isAdmin=true;
+
+async function checkAdmin(){
+  if(new URLSearchParams(location.search).get("admin") !== "1") return;
+
+  const input = prompt("Enter admin code:");
+  if(!input) return;
+
+  const enc = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  const hash = Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,"0"))
+    .join("");
+
+  if(hash === ADMIN_HASH){
+    isAdmin = true;
+    console.log("✅ ADMIN MODE");
+  }else{
+    alert("❌ Invalid admin code");
+  }
 }
 
+checkAdmin();
 
+
+  
   
 // Boss list
 const bosses = [
@@ -808,6 +832,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
