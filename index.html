@@ -519,7 +519,6 @@ window.resetBoss = (bossName) => {
     console.error("Failed to update boss:", err);
     alert("Error: cannot update boss. Check Firestore rules!");
   });
-};
 
 window.resetBoss = (bossName) => {
   if (!isAdmin) {
@@ -828,6 +827,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
