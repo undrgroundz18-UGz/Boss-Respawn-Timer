@@ -724,9 +724,61 @@ window.addEventListener("online", updateNetwork);
 window.addEventListener("offline", updateNetwork);
 updateNetwork();
 
+
+  
+
+  // ======= DESKTOP NOTIFICATIONS & ALARMS =======
+if ("Notification" in window && Notification.permission !== "granted") {
+  Notification.requestPermission().then(p => {
+    if(p !== "granted") console.log("Notifications blocked");
+  });
+}
+
+const alertTimes = [60, 10]; // minutes before respawn: 60min and 10min
+const notified = {}; // keep track so we don't spam notifications
+
+function scheduleBossAlerts(boss){
+  const now = Date.now();
+  const respawn = nextSpawn(boss);
+
+  alertTimes.forEach(minBefore => {
+    const alertKey = `${boss.n}-${minBefore}`;
+    if(notified[alertKey]) return; // already notified
+
+    const alertTime = respawn - minBefore*60*1000;
+    const delay = alertTime - now;
+
+    if(delay > 0){
+      setTimeout(() => {
+        if(Notification.permission === "granted"){
+          new Notification(`⚔️ ${boss.n} respawning in ${minBefore} min!`, {
+            body: `Location: ${boss.l}`,
+            icon: "https://example.com/boss-icon.png" // optional icon
+          });
+        }
+        // optional sound alert
+        const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
+        audio.play().catch(()=>{}); // avoid error if blocked
+        notified[alertKey] = true; // mark as notified
+      }, delay);
+    }
+  });
+}
+
+// schedule alerts for all bosses every 30 seconds
+setInterval(() => {
+  bosses.forEach(b => scheduleBossAlerts(b));
+}, 30 * 1000);
+
+// also schedule immediately for page load
+bosses.forEach(b => scheduleBossAlerts(b));
+
+
+  
 </script>
 </body>
 </html>
+
 
 
 
