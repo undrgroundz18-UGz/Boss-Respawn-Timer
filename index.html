@@ -387,6 +387,8 @@ const bosses = [
   {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
   {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
+  // 🔥 FIRESTORE LOCAL CACHE
+  const data = {};
   const resetAllBtn = document.getElementById("resetAllBtn");
 
 (async () => {
@@ -844,6 +846,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
