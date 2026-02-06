@@ -314,9 +314,8 @@ const db = getFirestore(app);
 
   
 // ===========================
-// 🔒 ADMIN HASH (UGzAdmin)
+// 🔒 ADMIN HASH 
 const ADMIN_HASH = "e0eafba05e56420e4b0f7a8297a3822871e36348972d73b4661fcde3018d8dda";
-
 let isAdmin = false;
 
 async function checkAdmin(){
@@ -390,38 +389,42 @@ const bosses = [
 ];
   const resetAllBtn = document.getElementById("resetAllBtn");
 
-if(isAdmin && resetAllBtn){
-  resetAllBtn.style.display="inline-block";
-  resetAllBtn.onclick = async ()=>{
-    if(!confirm("RESET ALL BOSSES?")) return;
-    for(const b of bosses){
-      await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
-    }
-    alert("All bosses reset.");
-  };
-}
+(async () => {
+  await checkAdmin();
 
-let data = {};
+  // Show reset button for admin
+  if(isAdmin && resetAllBtn){
+    resetAllBtn.style.display="inline-block";
+    resetAllBtn.onclick = async ()=>{
+      if(!confirm("RESET ALL BOSSES?")) return;
+      for(const b of bosses){
+        await updateDoc(doc(db,"bosses",b.n),{lastKill:0});
+      }
+      alert("All bosses reset.");
+      render();
+    };
+  }
 
-
-// Initialize Firestore for all bosses
-bosses.forEach(async b=>{
-  try{
-  const ref = doc(db,"bosses",b.n);
-  const snap = await getDoc(ref);
-  if(!snap.exists()){
-   // Only for admin: safe to ignore for normal users
-    if(isAdmin){
-    await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
+  // Initialize Firestore for all bosses
+  for(const b of bosses){
+    try{
+      const ref = doc(db,"bosses",b.n);
+      const snap = await getDoc(ref);
+      if(!snap.exists() && isAdmin){
+        await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
+      }
+      onSnapshot(ref, s => {
+        data[b.n] = s.data();
+        render();
+      });
+    }catch(e){
+      console.warn("Firestore read error (ignored):", e.message);
     }
   }
-  onSnapshot(ref,s=>{
-    data[b.n]=s.data();
-    });
-  }catch(e){
-    console.warn("Firestore read error (ignored):", e.message);
-  }
-});
+
+  render(); // initial render
+})();
+
 
   
 
@@ -841,6 +844,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
