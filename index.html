@@ -809,34 +809,42 @@ function scheduleBossAlerts(boss){
 
   alertTimes.forEach(minBefore => {
     const alertKey = `${boss.n}-${minBefore}`;
-    if(notified[alertKey]) return; // already notified
+    
+     // only schedule if not notified yet AND respawn is in the future
+    if(notified[alertKey] || respawn - minBefore*60*1000 <= now) return;
 
-    const alertTime = respawn - minBefore*60*1000;
-    const delay = alertTime - now;
+    const delay = respawn - minBefore*60*1000 - now;
+    if(delay <= 0) return;
 
-    if(delay > 0){
-      setTimeout(() => {
+    notified[alertKey] = true; // mark immediately to prevent rescheduling
+
+    setTimeout(() => {
         if(Notification.permission === "granted"){
           new Notification(`⚔️ ${boss.n} respawning in ${minBefore} min!`, {
             body: `Location: ${boss.l}`,
             icon: "https://example.com/boss-icon.png" // optional icon
           });
         }
-        // optional sound alert
-        const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
-        audio.loop = true;
-        audio.play().catch(()=>{}); // avoid error if blocked
-        setTimeout(()=> audio.pause(), 10000); // stop after 10s
-        notified[alertKey] = true; // mark as notified
-      }, delay);
-    }
+        // sound alert for 10s
+      const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
+      audio.play().catch(()=>{});
+      activeAudio[alertKey] = audio;
+      setTimeout(() => {
+        audio.pause();
+        delete activeAudio[alertKey];
+      }, 10000); // stop after 10s
+
+    }, delay);
   });
 }
 
-// schedule alerts for all bosses every 30 seconds
+  // Run once on page load
+bosses.forEach(b => scheduleBossAlerts(b));
+
+// Optional: reschedule only for future bosses every 5 minutes
 setInterval(() => {
   bosses.forEach(b => scheduleBossAlerts(b));
-}, 30 * 1000);
+}, 5 * 60 * 1000); // every 5 minutes instead of 30 seconds
 
 // also schedule immediately for page load
 bosses.forEach(b => scheduleBossAlerts(b));
@@ -846,6 +854,7 @@ bosses.forEach(b => scheduleBossAlerts(b));
 </script>
 </body>
 </html>
+
 
 
 
