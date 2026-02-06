@@ -792,8 +792,8 @@ updateNetwork();
 
 
   
-
-  // ======= DESKTOP NOTIFICATIONS & ALARMS =======
+  
+// ======= DESKTOP NOTIFICATIONS & ALARMS =======
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission().then(p => {
     if(p !== "granted") console.log("Notifications blocked");
@@ -810,50 +810,48 @@ function scheduleBossAlerts(boss){
   alertTimes.forEach(minBefore => {
     const alertKey = `${boss.n}-${minBefore}`;
     
-     // only schedule if not notified yet AND respawn is in the future
+    // only schedule if not notified yet AND respawn is in the future
     if(notified[alertKey] || respawn - minBefore*60*1000 <= now) return;
+    notified[alertKey] = true; // mark immediately to prevent rescheduling
 
     const delay = respawn - minBefore*60*1000 - now;
     if(delay <= 0) return;
 
-    notified[alertKey] = true; // mark immediately to prevent rescheduling
-
     setTimeout(() => {
-        if(Notification.permission === "granted"){
-          new Notification(`⚔️ ${boss.n} respawning in ${minBefore} min!`, {
-            body: `Location: ${boss.l}`,
-            icon: "https://example.com/boss-icon.png" // optional icon
-          });
-        }
-        // sound alert for 10s
+      // create notification
+      let notif;
+      if(Notification.permission === "granted"){
+        notif = new Notification(`⚔️ ${boss.n} respawning in ${minBefore} min!`, {
+          body: `Location: ${boss.l}`,
+          icon: "https://example.com/boss-icon.png" // optional icon
+        });
+
+        // close notification after 1 minute (60000ms)
+        setTimeout(() => notif.close(), 60*1000);
+      }
+
+      // play short sound for 10 seconds
       const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
       audio.play().catch(()=>{});
-      activeAudio[alertKey] = audio;
-      setTimeout(() => {
-        audio.pause();
-        delete activeAudio[alertKey];
-      }, 10000); // stop after 10s
+      setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 10000);
 
     }, delay);
   });
 }
 
-  // Run once on page load
+// Run once on page load
 bosses.forEach(b => scheduleBossAlerts(b));
 
 // Optional: reschedule only for future bosses every 5 minutes
 setInterval(() => {
   bosses.forEach(b => scheduleBossAlerts(b));
-}, 5 * 60 * 1000); // every 5 minutes instead of 30 seconds
-
-// also schedule immediately for page load
-bosses.forEach(b => scheduleBossAlerts(b));
-
+}, 5 * 60 * 1000); // every 5 minutes
 
   
 </script>
 </body>
 </html>
+
 
 
 
