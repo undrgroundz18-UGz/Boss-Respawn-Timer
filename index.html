@@ -587,14 +587,35 @@ filterSelect.addEventListener('change', render);
 // Render
 
   function getBossEmoji(b){
-  // walay schedule / dynamic boss
-  if(b.h){
-    return "⚔️"; // TULISAN main guild
+  const todayDate = new Date();
+  const today = days[todayDate.getDay()]; // "Monday", "Tuesday", etc.
+  
+  // Week 8: 02/09/2026 → 02/16/2026
+  const week8Start = new Date("2026-02-09");
+  const week8End   = new Date("2026-02-16");
+  if(todayDate < week8Start || todayDate > week8End){
+    return "⚔️"; // fallback outside week 8
   }
 
-  // fixed-time boss → walay emoji
-  return "";
+  const tulisans = DAY_TULISAN[today];
+
+  if(!tulisans) return "⚔️"; // fallback if today not mapped
+
+  // Define boss groups per day
+  const group1 = ["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"];
+  const group2 = ["Venatus","Viorent","Ego","Livera","Araneo"];
+
+  if(
+    (["Monday","Wednesday","Friday","Sunday"].includes(today) && group1.includes(b.n)) ||
+    (["Tuesday","Thursday","Saturday"].includes(today) && group2.includes(b.n))
+  ){
+    return tulisans.emoji;
+  }
+
+  return "⚔️"; // fallback for all others
 }
+
+
 
  
   const ONE_HOUR = 60 * 60 * 1000;
@@ -886,6 +907,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
