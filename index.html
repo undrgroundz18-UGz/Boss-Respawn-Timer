@@ -283,6 +283,8 @@ button:hover {
   ⭐  TULISAN V
 </div>
 
+  <div class="today-tulugan"></div>
+
 <div id="list"></div>
 
 </div>
@@ -310,6 +312,24 @@ const db = getFirestore(app);
   console.warn("Offline persistence error:", err.code);
 });
 
+  // ===== GLOBAL DAYS (ONLY ONE) =====
+const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAY_TULISAN = {
+  Monday:    { emoji:"⭐", name:"TULISAN V" },
+  Tuesday:   { emoji:"🔥", name:"TULISAN III" },
+  Wednesday: { emoji:"🛡️", name:"TULISAN II" },
+  Thursday:  { emoji:"🌟", name:"TULISAN IV" },
+  Friday:    { emoji:"🌟", name:"TULISAN IV" },
+  Saturday:  { emoji:"🛡️", name:"TULISAN II" },
+  Sunday:    { emoji:"🔥", name:"TULISAN III" }
+};
+
+function getTodayTulugan(){
+  const today = days[new Date().getDay()];
+  return DAY_TULISAN[today] || {emoji:"", name:""};
+}
+
+
 
 
   
@@ -320,6 +340,7 @@ let isAdmin = false;
 
 async function checkAdmin(){
   if(new URLSearchParams(location.search).get("admin") !== "1") return;
+
 
   const input = prompt("Enter admin code:");
   if(!input) return;
@@ -338,10 +359,7 @@ async function checkAdmin(){
   }
 }
 
-(async () => {
-  await checkAdmin();
-  render();
-})();
+
 
   
   
@@ -349,44 +367,44 @@ async function checkAdmin(){
 const bosses = [
   // Hourly bosses
   
-  {n:" Venatus",h:10,l:"Corrupted Basin"},
-  {n:" Viorent",h:10,l:"Crescent Lake"},
-  {n:" Livera",h:24,l:"Protector's Ruins"},
-  {n:" Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
-  {n:" Undomiel",h:24,l:"Secret Lab"},
-  {n:" Lady Dalia",h:18,l:"Twilight Hill"},
-  {n:" Ego",h:21,l:"Ulan Canyon"},
-  {n:" Amentis",h:29,l:"Land of Glory"},
-  {n:" General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
+  {n:"Venatus",h:10,l:"Corrupted Basin"},
+  {n:"Viorent",h:10,l:"Crescent Lake"},
+  {n:"Livera",h:24,l:"Protector's Ruins"},
+  {n:"Araneo",h:24,l:"Lower Tomb of Tyriosa 1F"},
+  {n:"Undomiel",h:24,l:"Secret Lab"},
+  {n:"Lady Dalia",h:18,l:"Twilight Hill"},
+  {n:"Ego",h:21,l:"Ulan Canyon"},
+  {n:"Amentis",h:29,l:"Land of Glory"},
+  {n:"General Aquleus",h:29,l:"Lower Tomb of Tyriosa 2F"},
   {n:"Gareth",h:32,l:"Deadman 1"},
-  {n:" Baron Braudmore",h:32,l:"Battlefield of Templar"},
-  {n:" Catena",h:35,l:"Deadman 3"},
-  {n:" Shuliar",h:35,l:"Ruins of War"},
-  {n:" Larba",h:35,l:"Ruins of War"},
-  {n:" Titore",h:37,l:"Deadman 2"},
-  {n:" Wannitas",h:48,l:"Plateau of Revolution"},
-  {n:" Metus",h:48,l:"Plateau of Revolution"},
-  {n:" Duplican",h:48,l:"Plateau of Revolution"},
-  {n:" Secreta",h:62,l:"Silvergrass Field"},
-  {n:" Ordo",h:62,l:"Silvergrass Field"},
-  {n:" Asta",h:62,l:"Silvergrass Field"},
-  {n:" Supore",h:62,l:"Silvergrass Field"},
+  {n:"Baron Braudmore",h:32,l:"Battlefield of Templar"},
+  {n:"Catena",h:35,l:"Deadman 3"},
+  {n:"Shuliar",h:35,l:"Ruins of War"},
+  {n:"Larba",h:35,l:"Ruins of War"},
+  {n:"Titore",h:37,l:"Deadman 2"},
+  {n:"Wannitas",h:48,l:"Plateau of Revolution"},
+  {n:"Metus",h:48,l:"Plateau of Revolution"},
+  {n:"Duplican",h:48,l:"Plateau of Revolution"},
+  {n:"Secreta",h:62,l:"Silvergrass Field"},
+  {n:"Ordo",h:62,l:"Silvergrass Field"},
+  {n:"Asta",h:62,l:"Silvergrass Field"},
+  {n:"Supore",h:62,l:"Silvergrass Field"},
 
   // Fixed-time bosses
-  {n:" Clemantis",ft:["thursday 19:00", "Monday 11:30"],l:"Corrupted Basin"},
-  {n:" Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
-  {n:" Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
-  {n:" Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
-  {n:" Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
-  {n:" Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"Crescent Lake"},
-  {n:" Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan"},
-  {n:" Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
-  {n:" Milavy",ft:["Saturday 15:00"],l:"Lower Tomb of Tyriosa 3F"},
-  {n:" Benji",ft:["Sunday 21:00"],l:"Barbas"},
-  {n:" Tumier",ft:["Sunday 19:00"],l:"Garbana 3F"},
-  {n:" Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
-  {n:" Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
-  {n:" Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
+  {n:"Clemantis",ft:["Thursday 19:00", "Monday 11:30"],l:"Corrupted Basin"},
+  {n:"Ringor",ft:["Saturday 17:00"],l:"Battlefield of Templar"},
+  {n:"Roderick",ft:["Friday 19:00"],l:"Garbana 1"},
+  {n:"Auraq",ft:["Friday 22:00","Wednesday 21:00"],l:"Garbana 2F"},
+  {n:"Chaiflock",ft:["Saturday 22:00"],l:"Silvergrass Field"},
+  {n:"Saphirus",ft:["Sunday 17:00","Tuesday 11:30"],l:"Crescent Lake"},
+  {n:"Neutro",ft:["Tuesday 19:00","Thursday 11:30"],l:"Desert of Scream / Ulan"},
+  {n:"Thymele",ft:["Monday 19:00","Wednesday 11:30"],l:"Twilight Hill"},
+  {n:"Milavy",ft:["Saturday 15:00"],l:"Lower Tomb of Tyriosa 3F"},
+  {n:"Benji",ft:["Sunday 21:00"],l:"Barbas"},
+  {n:"Tumier",ft:["Sunday 19:00"],l:"Garbana 3F"},
+  {n:"Icaruthia",ft:["Tuesday 21:00","Friday 21:00"],l:"Kransia"},
+  {n:"Motti",ft:["Wednesday 19:00","Saturday 19:00"],l:"Kransia"},
+  {n:"Nevaeh",ft:["Sunday 22:00"],l:"Kransia"}
 ];
   // 🔥 FIRESTORE LOCAL CACHE
   const data = {};
@@ -435,6 +453,7 @@ const bosses = [
 function parseTime(str){
   const [day,time] = str.split(" ");
   const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
   const now = new Date();
   const t = new Date(); t.setHours(...time.split(":").map(Number),0,0);
   let diff = (days.indexOf(day)-now.getDay()+7)%7;
@@ -526,7 +545,6 @@ window.killBoss = async (bossName) => {
     }
     await updateDoc(doc(db, "bosses", bossName), {
       lastKill: time,
-      adminSecret: "UGzAdmin"
     });
     alert(`${bossName} updated!`);
     render(); // refresh UI immediately
@@ -546,7 +564,6 @@ window.resetBoss = async (bossName) => {
     try {
       await updateDoc(doc(db, "bosses", bossName), {
         lastKill: 0,
-        adminSecret: "UGzAdmin"
       });
       alert(`${bossName} reset!`);
       render(); // refresh UI immediately
@@ -568,8 +585,6 @@ filterSelect.addEventListener('change', render);
   
   
 // Render
-
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
  
   const ONE_HOUR = 60 * 60 * 1000;
   const FOUR_HOURS = 4 * ONE_HOUR;
@@ -723,7 +738,7 @@ if(otherFixed.length)
     sec.innerHTML += `
       <div class="boss ${cls}">
         <div>
-          <strong> • ${b.n}</strong>
+          <strong>${getTodayTulugan().emoji} ${b.n}</strong>
           <small>${b.l}</small>
         </div>
         <div class="status">
@@ -750,10 +765,11 @@ if(otherFixed.length)
 
   return sec;
 }
-render();
 
 
-setInterval(render,1000);
+
+setInterval(render, 1000);
+
 
   if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").then(reg => {
@@ -843,6 +859,13 @@ function scheduleBossAlerts(boss){
 // Run once on page load
 bosses.forEach(b => scheduleBossAlerts(b));
 
+  const t = getTodayTulugan();
+const todayBox = document.querySelector(".today-tulugan");
+if(todayBox){
+  todayBox.innerHTML = `Today: ${t.emoji} ${t.name}`;
+}
+
+
 // Optional: reschedule only for future bosses every 5 minutes
 setInterval(() => {
   bosses.forEach(b => scheduleBossAlerts(b));
@@ -852,6 +875,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
