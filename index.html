@@ -586,34 +586,61 @@ filterSelect.addEventListener('change', render);
   
 // Render
 
-  function getBossEmoji(b){
-  const todayDate = new Date();
-  const today = days[todayDate.getDay()]; // "Monday", "Tuesday", etc.
-  
-  // Week 8: 02/09/2026 → 02/16/2026
-  const week8Start = new Date("2026-02-09");
-  const week8End   = new Date("2026-02-16");
-  if(todayDate < week8Start || todayDate > week8End){
-    return "⚔️"; // fallback outside week 8
+function getBossEmoji(b){
+  const now = new Date();
+
+  // ✅ WEEK 8 ONLY: Feb 09–15, 2026
+  const week8Start = new Date("2026-02-09T00:00:00");
+  const week8End   = new Date("2026-02-16T00:00:00"); // exclusive
+
+  // ❌ Outside week 8 → MAIN TULISAN
+  if(now < week8Start || now >= week8End){
+    return "⚔️";
   }
 
-  const tulisans = DAY_TULISAN[today];
+  const day = days[now.getDay()];
 
-  if(!tulisans) return "⚔️"; // fallback if today not mapped
+  // WEEK 8 SCHEDULE
+  const schedule = {
+    Monday: {
+      emoji:"⭐",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
+    },
+    Tuesday: {
+      emoji:"🔥",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
+    },
+    Wednesday: {
+      emoji:"🛡️",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
+    },
+    Thursday: {
+      emoji:"🌟",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
+    },
+    Friday: {
+      emoji:"🌟",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
+    },
+    Saturday: {
+      emoji:"🛡️",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
+    },
+    Sunday: {
+      emoji:"🔥",
+      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
+    }
+  };
 
-  // Define boss groups per day
-  const group1 = ["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"];
-  const group2 = ["Venatus","Viorent","Ego","Livera","Araneo"];
-
-  if(
-    (["Monday","Wednesday","Friday","Sunday"].includes(today) && group1.includes(b.n)) ||
-    (["Tuesday","Thursday","Saturday"].includes(today) && group2.includes(b.n))
-  ){
-    return tulisans.emoji;
+  const today = schedule[day];
+  if(today && today.bosses.includes(b.n)){
+    return today.emoji;
   }
 
-  return "⚔️"; // fallback for all others
+  // default for bosses not scheduled today
+  return "⚔️";
 }
+
 
 
 
@@ -907,6 +934,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
