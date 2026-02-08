@@ -587,20 +587,23 @@ filterSelect.addEventListener('change', render);
 // Render
 
 function getBossEmoji(b){
-  const now = new Date();
+  // 🔥 USE RESPAWN DATE, NOT CURRENT DATE
+  const spawnTime = nextSpawn(b);
+  if(!spawnTime) return "⚔️";
 
-  // ✅ WEEK 8 ONLY: Feb 09–15, 2026
+  const spawnDate = new Date(spawnTime);
+
+  // ✅ WEEK 8 RANGE (Feb 09–15, 2026)
   const week8Start = new Date("2026-02-09T00:00:00");
   const week8End   = new Date("2026-02-16T00:00:00"); // exclusive
 
-  // ❌ Outside week 8 → MAIN TULISAN
-  if(now < week8Start || now >= week8End){
+  // ❌ outside week 8 → MAIN TULISAN
+  if(spawnDate < week8Start || spawnDate >= week8End){
     return "⚔️";
   }
 
-  const day = days[now.getDay()];
+  const day = days[spawnDate.getDay()];
 
-  // WEEK 8 SCHEDULE
   const schedule = {
     Monday: {
       emoji:"⭐",
@@ -637,9 +640,9 @@ function getBossEmoji(b){
     return today.emoji;
   }
 
-  // default for bosses not scheduled today
   return "⚔️";
 }
+
 
 
 
@@ -934,6 +937,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
