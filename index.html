@@ -276,11 +276,11 @@ button:hover {
 </header>
   <!-- 🔽 EMOJI LEGEND IBUTANG DIRI -->
 <div class="legend">
-  ⚔️  TULISAN  &nbsp; | &nbsp;
-  🛡️  TULISAN II &nbsp; | &nbsp;
-  🔥  TULISAN III &nbsp; | &nbsp;
-  🌟  TULISAN IV &nbsp; | &nbsp;
-  ⭐  TULISAN V
+  ⚔️   I &nbsp; | &nbsp;
+  🛡️   II &nbsp; | &nbsp;
+  🔥   III &nbsp; | &nbsp;
+  🌟   IV &nbsp; | &nbsp;
+  ⭐   V
 </div>
 
   <div class="today-tulugan"></div>
@@ -315,13 +315,13 @@ const db = getFirestore(app);
   // ===== GLOBAL DAYS (ONLY ONE) =====
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const DAY_TULISAN = {
-  Monday:    { emoji:"⭐", name:"TULISAN V" },
-  Tuesday:   { emoji:"🔥", name:"TULISAN III" },
-  Wednesday: { emoji:"🛡️", name:"TULISAN II" },
-  Thursday:  { emoji:"🌟", name:"TULISAN IV" },
-  Friday:    { emoji:"🌟", name:"TULISAN IV" },
-  Saturday:  { emoji:"🛡️", name:"TULISAN II" },
-  Sunday:    { emoji:"🔥", name:"TULISAN III" }
+  Monday:    { emoji:"⭐", name:" V" },
+  Tuesday:   { emoji:"🔥", name:" III" },
+  Wednesday: { emoji:"🛡️", name:" II" },
+  Thursday:  { emoji:"🌟", name:" IV" },
+  Friday:    { emoji:"🌟", name:" IV" },
+  Saturday:  { emoji:"🛡️", name:" II" },
+  Sunday:    { emoji:"🔥", name:" III" }
 };
 
 function getTodayTulugan(){
@@ -937,6 +937,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
