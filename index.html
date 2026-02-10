@@ -264,24 +264,20 @@ button:hover {
   <div class="search-filter">
     <input id="search" type="text" placeholder="Search boss...">
     <select id="filter">
-      <option value="">All Statuses</option>
-      <option value="Alive">Alive</option>
-      <option value="Very Soon">Very Soon</option>
-      <option value="Soon">Soon</option>
-      <option value="Today">Today</option>
-      <option value="Scheduled">Scheduled</option>
+      <option value="ALL">ALL</option>
+      <option value="TK MAIN">TK MAIN</option>
+      <option value="ALLIANCE">ALLIANCE</option>
     </select>
     <button id="resetAllBtn" style="display:none">Reset All</button>
   </div>
 </header>
   <!-- 🔽 EMOJI LEGEND IBUTANG DIRI -->
 <div class="legend">
-  ⚔️   I &nbsp; | &nbsp;
-  🛡️   II &nbsp; | &nbsp;
-  🔥   III &nbsp; | &nbsp;
-  🌟   IV &nbsp; | &nbsp;
-  ⭐   V
+  ⚔️ TK MAIN &nbsp; | &nbsp;
+  🛡️ ALLIANCE &nbsp; | &nbsp;
+  🌟 OTHER
 </div>
+
 
   <div class="today-tulugan"></div>
 
@@ -360,11 +356,25 @@ async function checkAdmin(){
 }
 
 
+  const GUILD_MAP = {
+  "ALLIANCE": [
+    "Venatus","Viorent","Ego","Clemantis","Livera","Araneo",
+    "Undomiel","Saphirus","Neutro","Lady Dalia","General Aquleus",
+    "Thymele","Amentis","Baron Braudmore"
+  ],
+  "TK MAIN": [
+    "Milavy","Wannitas","Metus","Duplican","Shuliar","Ringor",
+    "Roderick","Gareth","Titore","Larba","Catena","Auraq",
+    "Secreta","Ordo","Asta","Supore","Chaiflock","Benji",
+    "Icaruthia","Motti","Nevaeh","Tumier"
+  ]
+};
 
   
   
 // Boss list
 const bosses = [
+
   // Hourly bosses
   
   {n:"Venatus",h:10,l:"Corrupted Basin"},
@@ -586,63 +596,18 @@ filterSelect.addEventListener('change', render);
   
 // Render
 
-function getBossEmoji(b){
-  // 🔥 USE RESPAWN DATE, NOT CURRENT DATE
-  const spawnTime = nextSpawn(b);
-  if(!spawnTime) return "⚔️";
-
-  const spawnDate = new Date(spawnTime);
-
-  // ✅ WEEK 8 RANGE (Feb 09–15, 2026)
-  const week8Start = new Date("2026-02-09T00:00:00");
-  const week8End   = new Date("2026-02-16T00:00:00"); // exclusive
-
-  // ❌ outside week 8 → MAIN TULISAN
-  if(spawnDate < week8Start || spawnDate >= week8End){
-    return "⚔️";
-  }
-
-  const day = days[spawnDate.getDay()];
-
-  const schedule = {
-    Monday: {
-      emoji:"⭐",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
-    },
-    Tuesday: {
-      emoji:"🔥",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
-    },
-    Wednesday: {
-      emoji:"🛡️",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
-    },
-    Thursday: {
-      emoji:"🌟",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
-    },
-    Friday: {
-      emoji:"🌟",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
-    },
-    Saturday: {
-      emoji:"🛡️",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo"]
-    },
-    Sunday: {
-      emoji:"🔥",
-      bosses:["Venatus","Viorent","Ego","Livera","Araneo","Undomiel","Lady Dalia"]
-    }
-  };
-
-  const today = schedule[day];
-  if(today && today.bosses.includes(b.n)){
-    return today.emoji;
-  }
-
-  return "⚔️";
+function getBossGuild(bossName){
+  if(GUILD_MAP.ALLIANCE.includes(bossName)) return "ALLIANCE";
+  if(GUILD_MAP["TK MAIN"].includes(bossName)) return "TK MAIN";
+  return "ALL";
 }
 
+function getBossEmoji(b){
+  const guild = getBossGuild(b.n);
+  if(guild === "TK MAIN") return "⚔️";
+  if(guild === "ALLIANCE") return "🛡️";
+  return "⚔️";
+}
 
 
 
@@ -794,7 +759,11 @@ if(otherFixed.length)
 
   list.forEach(b=>{
     const [t,cls,col] = getStatus(b);
-    if(filterSelect.value && filterSelect.value !== t) return;
+    const selectedGuild = filterSelect.value;
+const bossGuild = getBossGuild(b.n);
+
+if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
+
     if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
 
     sec.innerHTML += `
@@ -937,6 +906,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
