@@ -275,7 +275,6 @@ button:hover {
 <div class="legend">
   ⚔️ TK MAIN &nbsp; | &nbsp;
   🛡️ ALLIANCE &nbsp; | &nbsp;
-  🌟 OTHER
 </div>
 
 
@@ -311,13 +310,13 @@ const db = getFirestore(app);
   // ===== GLOBAL DAYS (ONLY ONE) =====
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const DAY_TULISAN = {
-  Monday:    { emoji:"⭐", name:" V" },
-  Tuesday:   { emoji:"🔥", name:" III" },
-  Wednesday: { emoji:"🛡️", name:" II" },
-  Thursday:  { emoji:"🌟", name:" IV" },
-  Friday:    { emoji:"🌟", name:" IV" },
-  Saturday:  { emoji:"🛡️", name:" II" },
-  Sunday:    { emoji:"🔥", name:" III" }
+  Monday:    { emoji:"", name:"" },
+  Tuesday:   { emoji:"", name:"" },
+  Wednesday: { emoji:"", name:"" },
+  Thursday:  { emoji:"", name:"" },
+  Friday:    { emoji:"", name:"" },
+  Saturday:  { emoji:"", name:"" },
+  Sunday:    { emoji:"", name:"" }
 };
 
 function getTodayTulugan(){
@@ -906,6 +905,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
