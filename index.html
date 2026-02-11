@@ -564,9 +564,21 @@ window.killBoss = async (bossName) => {
       const d = new Date(input);
       if (!isNaN(d)) time = d.getTime();
     }
-    await updateDoc(doc(db, "bosses", bossName), {
-      lastKill: time,
-    });
+const respawnTime = nextSpawn(
+  bosses.find(b => b.n === bossName)
+);
+
+console.log("===== BOSS LOG =====");
+console.log("Boss:", bossName);
+console.log("Killed at:", new Date(time).toLocaleString());
+console.log("Respawns at:", new Date(respawnTime).toLocaleString());
+console.log("====================");
+
+await updateDoc(doc(db, "bosses", bossName), {
+  lastKill: time,
+  lastRespawn: respawnTime
+});
+
     alert(`${bossName} updated!`);
     render(); // refresh UI immediately
   } catch(e) {
@@ -917,6 +929,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
