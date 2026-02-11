@@ -579,7 +579,12 @@ await updateDoc(doc(db, "bosses", bossName), {
   lastRespawn: respawnTime
 });
 
-    alert(`${bossName} updated!`);
+    alert(
+  `✅ ${bossName} Updated!\n\n` +
+  `🗡️ Killed At:\n${new Date(time).toLocaleString()}\n\n` +
+  `⏳ Respawns At:\n${new Date(respawnTime).toLocaleString()}`
+);
+
     render(); // refresh UI immediately
   } catch(e) {
     console.error("Failed to update boss:", e);
@@ -929,6 +934,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
