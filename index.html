@@ -574,10 +574,26 @@ console.log("Killed at:", new Date(time).toLocaleString());
 console.log("Respawns at:", new Date(respawnTime).toLocaleString());
 console.log("====================");
 
-await updateDoc(doc(db, "bosses", bossName), {
-  lastKill: time,
-  lastRespawn: respawnTime
+const bossRef = doc(db, "bosses", bossName);
+const current = data[bossName] || {};
+
+let logs = current.logs || [];
+
+// add new log sa pinaka taas
+logs.unshift({
+  killedAt: time,
+  respawnAt: respawnTime
 });
+
+// keep only last 5 logs
+logs = logs.slice(0,5);
+
+await updateDoc(bossRef, {
+  lastKill: time,
+  lastRespawn: respawnTime,
+  logs: logs
+});
+
 
     alert(
   `✅ ${bossName} Updated!\n\n` +
@@ -592,6 +608,25 @@ await updateDoc(doc(db, "bosses", bossName), {
   }
 };
 
+  window.viewLogs = (bossName) => {
+  const bossData = data[bossName];
+  if(!bossData || !bossData.logs || bossData.logs.length === 0){
+    alert("No logs yet for " + bossName);
+    return;
+  }
+
+  let msg = `📜 Last 5 Logs for ${bossName}\n\n`;
+
+  bossData.logs.forEach((log, i) => {
+    msg += `#${i+1}\n`;
+    msg += `🗡️ Killed: ${new Date(log.killedAt).toLocaleString()}\n`;
+    msg += `⏳ Respawn: ${new Date(log.respawnAt).toLocaleString()}\n\n`;
+  });
+
+  alert(msg);
+};
+
+  
 window.resetBoss = async (bossName) => {
   if (!isAdmin) {
     alert("You are not admin!");
@@ -816,6 +851,7 @@ if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
         ${isAdmin ? `
         <div>
           <button onclick="killBoss('${b.n}')">Kill</button>
+          <button onclick="viewLogs('${b.n}')">Logs</button>
           <button onclick="resetBoss('${b.n}')">Reset</button>
         </div>` : ""}
       </div>
@@ -934,6 +970,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
