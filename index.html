@@ -521,10 +521,14 @@ function nextSpawn(b){
   
   
 function getStatus(b){
+  const ONE_HOUR = 60 * 60 * 1000;
+  const FOUR_HOURS = 4 * ONE_HOUR;
+  const TWELVE_HOURS = 12 * ONE_HOUR; // 12 hours
+
   const diff = timeUntilSpawn(b);
 
   if(diff <= 0){
-    return ["ALIVE","alive","#4caf50"];
+    return ["SPAWNED","alive","#4caf50"];
   }
 
   if(diff <= ONE_HOUR){
@@ -535,12 +539,13 @@ function getStatus(b){
     return ["SOON","soon","#ff9800"];
   }
 
-  if(diff <= TWENTY_FOUR_HOURS){
+  if(diff <= TWELVE_HOURS){
     return ["TODAY","today","#ffc107"];
   }
 
   return ["SCHEDULED","scheduled","#9e9e9e"];
 }
+  
   
 
   
@@ -972,6 +977,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
