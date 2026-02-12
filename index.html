@@ -521,8 +521,7 @@ function nextSpawn(b){
   
   
 function getStatus(b){
-  const respawn = nextSpawn(b);
-  const diff = respawn - Date.now();
+  const diff = timeUntilSpawn(b);
 
   if(diff <= 0){
     return ["ALIVE","alive","#4caf50"];
@@ -536,8 +535,7 @@ function getStatus(b){
     return ["SOON","soon","#ff9800"];
   }
 
-  // 🔥 TODAY only if same calendar date
-  if(isSameDay(respawn)){
+  if(diff <= TWENTY_FOUR_HOURS){
     return ["TODAY","today","#ffc107"];
   }
 
@@ -974,6 +972,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
