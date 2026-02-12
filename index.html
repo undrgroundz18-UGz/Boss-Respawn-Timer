@@ -520,22 +520,12 @@ function nextSpawn(b){
 
   
   
-function isSameDay(ts){
-  const now = new Date();
-  const d = new Date(ts);
-  return (
-    now.getFullYear() === d.getFullYear() &&
-    now.getMonth() === d.getMonth() &&
-    now.getDate() === d.getDate()
-  );
-}
-
 function getStatus(b){
   const respawn = nextSpawn(b);
   const diff = respawn - Date.now();
 
   if(diff <= 0){
-    return ["SPAWNED","alive","#4caf50"];
+    return ["ALIVE","alive","#4caf50"];
   }
 
   if(diff <= ONE_HOUR){
@@ -984,6 +974,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
