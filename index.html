@@ -519,30 +519,44 @@ function nextSpawn(b){
 }
 
   
-function getStatus(b){
-  const diff = timeUntilSpawn(b);
+  
+function isSameDay(ts){
+  const now = new Date();
+  const d = new Date(ts);
+  return (
+    now.getFullYear() === d.getFullYear() &&
+    now.getMonth() === d.getMonth() &&
+    now.getDate() === d.getDate()
+  );
+}
 
+function getStatus(b){
+  const respawn = nextSpawn(b);
+  const diff = respawn - Date.now();
 
   if(diff <= 0){
-    return ["Alive","alive","#4caf50"]; // GREEN
+    return ["SPAWNED","alive","#4caf50"];
   }
 
   if(diff <= ONE_HOUR){
-    return ["Very Soon","very-soon","#ff5252"]; // RED (≤ 1h)
+    return ["VERY SOON","very-soon","#ff5252"];
   }
 
   if(diff <= FOUR_HOURS){
-    return ["Soon","soon","#ff9800"]; // ORANGE (≤ 4h)
+    return ["SOON","soon","#ff9800"];
   }
 
-  if(diff <= TWENTY_FOUR_HOURS){
-    return ["Today","today","#ffc107"]; // YELLOW (today)
+  // 🔥 TODAY only if same calendar date
+  if(isSameDay(respawn)){
+    return ["TODAY","today","#ffc107"];
   }
 
-  return ["Scheduled","scheduled","#9e9e9e"]; // GRAY
+  return ["SCHEDULED","scheduled","#9e9e9e"];
 }
+  
 
-
+  
+  
 
 function formatCountdown(b){
   const diff = nextSpawn(b)-Date.now();
@@ -970,6 +984,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
