@@ -425,15 +425,20 @@ fetch("data.json")
       if(!snap.exists() && isAdmin){
         await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
       }
+      data[b.n] = snap.data() || {lastKill:0, ft:b.ft||[], h:b.h||0, l:b.l||"-"};
+      
       onSnapshot(ref, s => {
         data[b.n] = s.data();
         render();
       });
     }catch(e){
       console.warn("Firestore read error (ignored):", e.message);
+      // fallbakc to JSON
+      data[b.n] = {lastKill:0, ft:b.ft||[], h:b.h||0, l:b.l||"-"};
     }
   }
 
+  // Call render only after all bosses initialized
   render(); // initial render
 })();
 
@@ -928,6 +933,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
