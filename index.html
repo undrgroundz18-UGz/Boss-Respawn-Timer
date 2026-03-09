@@ -455,9 +455,9 @@ function parseTime(str){
 
 function nextSpawn(b, lastKillOverride) {
   // HOURLY BOSSES
+  const lastKill = lastKillOverride ?? data[b.n]?.lastKill ?? 0;
   if(b.h){
-    const lastKill = lastKillOverride ?? data[b.n]?.lastKill;
-    if(!lastKill) return 0; // boss is alive, never killed yet
+    if(!lastKill) return 0; // alive
     return lastKill + b.h * 3600000;
   }
 
@@ -471,8 +471,6 @@ function nextSpawn(b, lastKillOverride) {
 
     if(upcoming.length) return upcoming[0];
 
-    
-    //NEXTWeEK
     const nextWeek = b.ft
       .map(f => parseTime(f).getTime() + 7*24*3600000)
       .sort((a,b)=>a-b);
@@ -485,7 +483,8 @@ function nextSpawn(b, lastKillOverride) {
 
 // TIME UNTIL SPAWN
 function timeUntilSpawn(b, lastKillOverride){
-  return nextSpawn(b, lastKillOverride) - Date.now();
+  const next = nextSpawn(b, lastKillOverride);
+  return next - Date.now();
 }
 
 // GET STATUS
@@ -783,7 +782,7 @@ if(otherFixed.length)
   `;
 
   list.forEach(b=>{
-    const [t,cls,col] = getStatus(b);
+    const [t,cls,col] = getStatus(b, data[b.n]?.lastKill);
     const selectedGuild = filterSelect.value;
 const bossGuild = getBossGuild(b.n);
 
@@ -932,6 +931,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
