@@ -557,11 +557,6 @@ console.log("====================");
         // Add new log at the top
     logs.unshift({ killedAt: time, respawnAt: respawnTime });
 
-const bossRef = doc(db, "bosses", bossName);
-const current = data[bossName] || {};
-
-let logs = current.logs || [];
-
 // add new log sa pinaka taas
 logs.unshift({
   killedAt: time,
@@ -955,6 +950,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
