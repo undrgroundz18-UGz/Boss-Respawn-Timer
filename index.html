@@ -455,32 +455,40 @@ function parseTime(str){
 
 function nextSpawn(b, lastKillOverride) {
   // HOURLY BOSSES
-  if (b.h) {
-    const lastKill = lastKillOverride ?? (data[b.n]?.lastKill || 0);
+  if(b.h){
+    const lastKill = lastKillOverride ?? data[b.n]?.lastKill;
+    if(!lastKill) return null; // boss is alive, never killed yet
     return lastKill + b.h * 3600000;
   }
 
   // FIXED-TIME BOSSES
-  if (b.ft) {
+  if(b.ft){
     const now = Date.now();
 
-    // get all upcoming times
+    // upcoming times this week
     const upcoming = b.ft
       .map(f => parseTime(f).getTime())
       .filter(t => t > now)
-      .sort((a, b) => a - b);
+      .sort((a,b)=>a-b);
 
-    if (upcoming.length) return upcoming[0];
+    if(upcoming.length) return upcoming[0];
 
-    // else, get earliest next week
+    // else, next week
     const nextWeek = b.ft
-      .map(f => parseTime(f).getTime() + 7 * 24 * 3600000)
-      .sort((a, b) => a - b);
+      .map(f => parseTime(f).getTime() + 7*24*3600000)
+      .sort((a,b)=>a-b);
 
     return nextWeek[0];
   }
 
-  return Date.now();
+  return null; // fallback, should not happen
+}
+
+// ===== TIME UNTIL SPAWN =====
+function timeUntilSpawn(b, lastKillOverride){
+  const next = nextSpawn(b, lastKillOverride);
+  if(!next) return 0; // alive
+  return next - Date.now();
 }
   
 
@@ -911,6 +919,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
