@@ -457,15 +457,13 @@ function nextSpawn(b, lastKillOverride) {
   // HOURLY BOSSES
   if(b.h){
     const lastKill = lastKillOverride ?? data[b.n]?.lastKill;
-    if(!lastKill) return null; // boss is alive, never killed yet
+    if(!lastKill) return 0; // boss is alive, never killed yet
     return lastKill + b.h * 3600000;
   }
 
   // FIXED-TIME BOSSES
   if(b.ft){
     const now = Date.now();
-
-    // upcoming times this week
     const upcoming = b.ft
       .map(f => parseTime(f).getTime())
       .filter(t => t > now)
@@ -473,7 +471,8 @@ function nextSpawn(b, lastKillOverride) {
 
     if(upcoming.length) return upcoming[0];
 
-    // else, next week
+    
+    //NEXTWeEK
     const nextWeek = b.ft
       .map(f => parseTime(f).getTime() + 7*24*3600000)
       .sort((a,b)=>a-b);
@@ -481,43 +480,30 @@ function nextSpawn(b, lastKillOverride) {
     return nextWeek[0];
   }
 
-  return null; // fallback, should not happen
+  return 0; // fallback
 }
 
-// ===== TIME UNTIL SPAWN =====
+// TIME UNTIL SPAWN
 function timeUntilSpawn(b, lastKillOverride){
-  const next = nextSpawn(b, lastKillOverride);
-  if(!next) return 0; // alive
-  return next - Date.now();
+  return nextSpawn(b, lastKillOverride) - Date.now();
 }
 
-//////////////////////////////////////////////////////////
-  
-function getStatus(b){
-  const ONE_HOUR = 60 * 60 * 1000;
-  const FOUR_HOURS = 4 * ONE_HOUR;
-  const TWELVE_HOURS = 12 * ONE_HOUR; // 12 hours
+// GET STATUS
+function getStatus(b, lastKillOverride){
+  const ONE_HOUR = 60*60*1000;
+  const FOUR_HOURS = 4*ONE_HOUR;
+  const TWELVE_HOURS = 12*ONE_HOUR;
 
-  const diff = timeUntilSpawn(b);
+  const diff = timeUntilSpawn(b, lastKillOverride);
 
-  if(diff <= 0){
-    return ["SPAWNED","alive","#4caf50"]; 
-  }
-
-  if(diff <= ONE_HOUR){
-    return ["VERY SOON","very-soon","#ff5252"]; 
-  }
-  
-  if(diff <= FOUR_HOURS){
-    return ["SOON","soon","#ff9800"]; 
-  }
-
-  if(diff <= TWELVE_HOURS){
-    return ["TODAY","today","#ffc107"]; 
-  }
-
-  return ["SCHEDULED","scheduled","#9e9e9e"]; 
+  if(diff <= 0) return ["ALIVE","alive","#4caf50"];
+  if(diff <= ONE_HOUR) return ["VERY SOON","very-soon","#ff5252"];
+  if(diff <= FOUR_HOURS) return ["SOON","soon","#ff9800"];
+  if(diff <= TWELVE_HOURS) return ["TODAY","today","#ffc107"];
+  return ["SCHEDULED","scheduled","#9e9e9e"];
 }
+
+
   
 //////////////////////////////////////////////////////////
   
@@ -946,6 +932,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
