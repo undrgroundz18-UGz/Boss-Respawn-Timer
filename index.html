@@ -455,9 +455,22 @@ function parseTime(str){
 
 function nextSpawn(b){
   // HOURLY BOSSES (unchanged)
+  function nextSpawn(b){
   if(b.h){
-    return (data[b.n]?.lastKill || 0) + b.h * 3600000;
+    const lastKill = data[b.n]?.lastKill;
+    if(!lastKill) return null; // alive
+    return lastKill + b.h * 3600000;
   }
+
+  if(b.ft){
+    const now = Date.now();
+    const upcoming = b.ft.map(f => parseTime(f).getTime()).filter(t => t>now).sort((a,b)=>a-b);
+    if(upcoming.length) return upcoming[0];
+    return b.ft.map(f => parseTime(f).getTime()+7*24*3600000).sort((a,b)=>a-b)[0];
+  }
+
+  return null;
+}
 
   // FIXED-TIME BOSSES (FIXED LOGIC)
   if(b.ft){
@@ -522,8 +535,8 @@ function getStatus(b){
   
 
 function formatCountdown(b){
-  const diff = nextSpawn(b)-Date.now();
-  if(diff <=0) return "Alive";
+  const diff = nextSpawn(b) ? nextSpawn(b)-Date.now() : -1;
+  if(diff <=0) return "ALIVE";
   const h = Math.floor(diff/3600000);
   const m = Math.floor((diff%3600000)/60000);
   return `${h}h ${m}m`;
@@ -769,9 +782,8 @@ if(otherFixed.length)
 }
 
   function formatRespawnDate(ts){
+  if(!ts) return "ALIVE";
   const d = new Date(ts);
-  if(isNaN(d)) return "-";
-
   return d.toLocaleString(undefined,{
     month:"short",
     day:"numeric",
@@ -947,6 +959,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
