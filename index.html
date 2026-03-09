@@ -537,13 +537,25 @@ window.killBoss = async (bossName) => {
       if (!isNaN(d)) time = d.getTime();
     }
 const boss = bosses.find(b => b.n === bossName);
+if(!boss) return alert("Boss not found!");
+    
+     // Compute next respawn
 const respawnTime = nextSpawn(boss, time);  // 'time' gikan sa admin prompt
 
+
+    // Logs management
+    const bossRef = doc(db, "bosses", bossName);
+    const current = data[bossName] || {};
+    let logs = current.logs || [];
+    
 console.log("===== BOSS LOG =====");
 console.log("Boss:", bossName);
 console.log("Killed at:", new Date(time).toLocaleString());
 console.log("Respawns at:", new Date(respawnTime).toLocaleString());
 console.log("====================");
+
+        // Add new log at the top
+    logs.unshift({ killedAt: time, respawnAt: respawnTime });
 
 const bossRef = doc(db, "bosses", bossName);
 const current = data[bossName] || {};
@@ -559,18 +571,24 @@ logs.unshift({
 // keep only last 5 logs
 logs = logs.slice(0,5);
 
-await updateDoc(bossRef, {
-  lastKill: time,
-  lastRespawn: respawnTime,
-  logs: logs
-});
+ // Update Firestore
+    await updateDoc(bossRef, {
+      lastKill: time,
+      logs: logs
+    });
 
+    // Update local cache immediately for UI
+    data[bossName] = {
+      ...current,
+      lastKill: time,
+      logs: logs
+    };
 
     alert(
-  `✅ ${bossName} Updated!\n\n` +
-  `🗡️ Killed At:\n${new Date(time).toLocaleString()}\n\n` +
-  `⏳ Respawns At:\n${new Date(respawnTime).toLocaleString()}`
-);
+      `✅ ${bossName} Updated!\n\n` +
+      `🗡️ Killed At: ${new Date(time).toLocaleString()}\n` +
+      `⏳ Respawns At: ${new Date(respawnTime).toLocaleString()}`
+    );
 
     render(); // refresh UI immediately
   } catch(e) {
@@ -937,6 +955,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
