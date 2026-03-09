@@ -398,13 +398,13 @@ fetch("data.json")
 
   
   // 🔥 FIRESTORE LOCAL CACHE
-  const data = {};
-  const resetAllBtn = document.getElementById("resetAllBtn");
+// 🔥 FIRESTORE LOCAL CACHE
+const data = {};
+const resetAllBtn = document.getElementById("resetAllBtn");
 
 (async () => {
   await checkAdmin();
 
-  // Show reset button for admin
   if(isAdmin && resetAllBtn){
     resetAllBtn.style.display="inline-block";
     resetAllBtn.onclick = async ()=>{
@@ -417,29 +417,33 @@ fetch("data.json")
     };
   }
 
-  // Initialize Firestore for all bosses
-  for(const b of bosses){
-    try{
-      const ref = doc(db,"bosses",b.n);
-      const snap = await getDoc(ref);
-      if(!snap.exists() && isAdmin){
-        await setDoc(ref,{lastKill:0,ft:b.ft||[],h:b.h||0,l:b.l||"-"});
-      }
-      data[b.n] = snap.data() || {lastKill:0, ft:b.ft||[], h:b.h||0, l:b.l||"-"};
-      
-      onSnapshot(ref, s => {
-        data[b.n] = s.data();
-        render();
-      });
-    }catch(e){
-      console.warn("Firestore read error (ignored):", e.message);
-      // fallbakc to JSON
-      data[b.n] = {lastKill:0, ft:b.ft||[], h:b.h||0, l:b.l||"-"};
-    }
-  }
+  // ======== INIT BOSSES FROM JSON ========
+  const jsonResp = await fetch("data.json");
+  const jsonData = await jsonResp.json();
+  bosses = [...jsonData.hourly, ...jsonData.fixed];
 
-  // Call render only after all bosses initialized
-  render(); // initial render
+  // ======== FIRESTORE SYNC ========
+  await Promise.all(bosses.map(async b => {
+    const ref = doc(db,"bosses",b.n);
+    const snap = await getDoc(ref);
+    if(!snap.exists() && isAdmin){
+      // create Firestore doc only if admin
+      await setDoc(ref,{
+        lastKill: 0,
+        logs: [],
+        ft: b.ft || [],
+        h: b.h || 0,
+        l: b.l || "-"
+      });
+    }
+    onSnapshot(ref, s => {
+      // update dynamic data only, do NOT overwrite static info from JSON
+      data[b.n] = s.data();
+      render();
+    });
+  }));
+
+  render(); // initial render after JSON + Firestore ready
 })();
 
 
@@ -933,6 +937,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
