@@ -453,85 +453,38 @@ function parseTime(str){
   return t;
 }
 
-function nextSpawn(b){
-  // HOURLY BOSSES (unchanged)
-  function nextSpawn(b){
-  if(b.h){
-    const lastKill = data[b.n]?.lastKill;
-    if(!lastKill) return null; // alive
+function nextSpawn(b, lastKillOverride) {
+  // HOURLY BOSSES
+  if (b.h) {
+    const lastKill = lastKillOverride ?? (data[b.n]?.lastKill || 0);
     return lastKill + b.h * 3600000;
   }
 
-  if(b.ft){
-    const now = Date.now();
-    const upcoming = b.ft.map(f => parseTime(f).getTime()).filter(t => t>now).sort((a,b)=>a-b);
-    if(upcoming.length) return upcoming[0];
-    return b.ft.map(f => parseTime(f).getTime()+7*24*3600000).sort((a,b)=>a-b)[0];
-  }
-
-  return null;
-}
-
-  // FIXED-TIME BOSSES (FIXED LOGIC)
-  if(b.ft){
+  // FIXED-TIME BOSSES
+  if (b.ft) {
     const now = Date.now();
 
     // get all upcoming times
     const upcoming = b.ft
       .map(f => parseTime(f).getTime())
       .filter(t => t > now)
-      .sort((a,b)=>a-b);
+      .sort((a, b) => a - b);
 
-    // if naa pay upcoming this week
-    if(upcoming.length) return upcoming[0];
+    if (upcoming.length) return upcoming[0];
 
     // else, get earliest next week
     const nextWeek = b.ft
-      .map(f => parseTime(f).getTime() + 7*24*3600000)
-      .sort((a,b)=>a-b);
+      .map(f => parseTime(f).getTime() + 7 * 24 * 3600000)
+      .sort((a, b) => a - b);
 
     return nextWeek[0];
   }
 
   return Date.now();
 }
-
-
-  function timeUntilSpawn(b){
-  return nextSpawn(b) - Date.now();
-}
-
-  
-  
-function getStatus(b){
-  const ONE_HOUR = 60 * 60 * 1000;
-  const FOUR_HOURS = 4 * ONE_HOUR;
-  const TWELVE_HOURS = 12 * ONE_HOUR; // 12 hours
-
-  const diff = timeUntilSpawn(b);
-
-  if(diff <= 0){
-    return ["SPAWNED","alive","#4caf50"];
-  }
-
-  if(diff <= ONE_HOUR){
-    return ["VERY SOON","very-soon","#ff5252"];
-  }
-
-  if(diff <= FOUR_HOURS){
-    return ["SOON","soon","#ff9800"];
-  }
-
-  if(diff <= TWELVE_HOURS){
-    return ["TODAY","today","#ffc107"];
-  }
-
-  return ["SCHEDULED","scheduled","#9e9e9e"];
-}
-  
   
 
-  
+  --------------------------------------------------------------------
   
 
 function formatCountdown(b){
@@ -554,9 +507,8 @@ window.killBoss = async (bossName) => {
       const d = new Date(input);
       if (!isNaN(d)) time = d.getTime();
     }
-const respawnTime = nextSpawn(
-  bosses.find(b => b.n === bossName)
-);
+const boss = bosses.find(b => b.n === bossName);
+const respawnTime = nextSpawn(boss, time);  // 'time' gikan sa admin prompt
 
 console.log("===== BOSS LOG =====");
 console.log("Boss:", bossName);
@@ -959,6 +911,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 
