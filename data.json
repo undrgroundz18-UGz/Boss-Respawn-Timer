@@ -1,9 +1,11 @@
-  
+
 // Boss list
 const bosses = [
 
   // Hourly bosses
-  
+
+    {
+   "bosses": [
   {n:"Venatus",h:10,l:"Corrupted Basin"},
   {n:"Viorent",h:10,l:"Crescent Lake"},
   {n:"Livera",h:24,l:"Protector's Ruins"},
