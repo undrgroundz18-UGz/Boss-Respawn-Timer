@@ -1,6 +1,5 @@
 {
   "hourly":[
-
     {"n":"Venatus","h":10,"l":"Corrupted Basin"},
     {"n":"Viorent","h":10,"l":"Crescent Lake"},
     {"n":"Livera","h":24,"l":"Protector's Ruins"},
@@ -23,9 +22,9 @@
     {"n":"Ordo","h":62,"l":"Silvergrass Field"},
     {"n":"Asta","h":62,"l":"Silvergrass Field"},
     {"n":"Supore","h":62,"l":"Silvergrass Field"},
-
-     "fixed":[
-       
+  ]
+  
+  "fixed":[       
     {"n":"Clemantis","ft":["Thursday 19:00","Monday 11:30"],"l":"Corrupted Basin"},
     {"n":"Ringor","ft":["Saturday 17:00"],"l":"Battlefield of Templar"},
     {"n":"Roderick","ft":["Friday 19:00"],"l":"Garbana 1"},
