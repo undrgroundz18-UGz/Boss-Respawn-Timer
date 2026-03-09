@@ -21,10 +21,10 @@
     {"n":"Secreta","h":62,"l":"Silvergrass Field"},
     {"n":"Ordo","h":62,"l":"Silvergrass Field"},
     {"n":"Asta","h":62,"l":"Silvergrass Field"},
-    {"n":"Supore","h":62,"l":"Silvergrass Field"},
-  ]
-  
-  "fixed":[       
+    {"n":"Supore","h":62,"l":"Silvergrass Field"}
+  ],
+
+  "fixed":[
     {"n":"Clemantis","ft":["Thursday 19:00","Monday 11:30"],"l":"Corrupted Basin"},
     {"n":"Ringor","ft":["Saturday 17:00"],"l":"Battlefield of Templar"},
     {"n":"Roderick","ft":["Friday 19:00"],"l":"Garbana 1"},
@@ -39,6 +39,5 @@
     {"n":"Icaruthia","ft":["Tuesday 21:00","Friday 21:00"],"l":"Kransia"},
     {"n":"Motti","ft":["Wednesday 19:00","Saturday 19:00"],"l":"Kransia"},
     {"n":"Nevaeh","ft":["Sunday 22:00"],"l":"Kransia"}
-
   ]
 }
