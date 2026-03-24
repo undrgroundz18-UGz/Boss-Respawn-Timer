@@ -103,7 +103,6 @@ function getTodayTulugan(){
 // 🔒 ADMIN HASH 
 const ADMIN_HASH = "e0eafba05e56420e4b0f7a8297a3822871e36348972d73b4661fcde3018d8dda";
 let isAdmin = false;
-  window.isAdmin = isAdmin;
 
 async function checkAdmin(){
   if(new URLSearchParams(location.search).get("admin") !== "1") return;
@@ -124,6 +123,7 @@ async function checkAdmin(){
     console.log("✅ ADMIN MODE");
   }else{
     alert("❌ Invalid admin code");
+    render();
   }
 }
 
