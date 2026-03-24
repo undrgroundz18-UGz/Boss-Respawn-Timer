@@ -641,7 +641,7 @@ function renderSection(title, list){
         <div class="boss-name">
           <strong>${icon ? icon + " " : ""}${b.n}</strong>
           <small>${b.guild}</small>
-          <small>${highlightText(b.l, query)}</small>
+          <small>${b.l ? highlightText(b.l, query) : ""}</small>
         </div>
         
         <div class="status">
