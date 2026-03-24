@@ -666,7 +666,15 @@ const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
 const sortSelect = document.getElementById('sort');
   
-searchInput.addEventListener('input', render);
+let searchTimeout;
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    render();
+  }, 200); // 200ms delay
+});
+  
 filterSelect.addEventListener('change', render);
 sortSelect.addEventListener('change', render);
 
@@ -864,12 +872,18 @@ if(otherFixed.length)
     const bossGuild = getBossGuild(b.n);
 
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
-    if(searchInput.value && !b.n.toLowerCase().includes(searchInput.value.toLowerCase())) return;
+    const query = searchInput.value.toLowerCase().trim();
+
+    if(query && !b.n.toLowerCase().includes(query)) return;
 
     sec.innerHTML += `
       <div class="boss ${cls}">
         <div>
-          <strong>${getBossEmoji(b)} ${b.n}</strong>
+      function highlightText(text, query){
+        if(!query) return text;
+        const regex = new RegExp(`(${query})`, "gi");
+        return text.replace(regex, `<mark>$1</mark>`);
+      }
           <small>${b.l}</small>
         </div>
         <div class="status">
