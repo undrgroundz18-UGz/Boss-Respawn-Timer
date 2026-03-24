@@ -698,11 +698,11 @@ const otherFixed = [];
 const kransia = [];
 
 bosses.forEach(b=>{
-  if(isKransiaBoss(b)){
-    kransia.push(b);
-  }
-  else if(isFixedRespawnToday(b)){
+  if(isFixedRespawnToday(b)){
     todayFixed.push(b);
+  }
+  else if(isKransiaBoss(b)){
+    kransia.push(b);
   }
   else if(isFixedBoss(b)){
     otherFixed.push(b);
