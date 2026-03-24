@@ -620,43 +620,60 @@ if(otherFixed.length)
   `;
 
 
-  list.forEach(b=>{
+  list.forEach(b => {
     const [t, cls, col] = getStatus(b, data[b.n]?.lastKill);
     const selectedGuild = filterSelect.value;
     const bossGuild = getBossGuild(b.n);
+    const icon = getGuildIcon(b.guild);
 
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
     const query = searchInput.value.toLowerCase().trim();
 
     if(query && !b.n.toLowerCase().includes(query)) return;
 
-    sec.innerHTML += `
-      <div class="boss ${cls}">
-        <div>
 
-          <small>${highlightText(b.l, query)}</small>
-        </div>
-        <div class="status">
-          <span class="dot" style="background:${col}"></span>${t}
-        </div>
-        <div class="schedule">
-          ${
-            b.h
-            ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
-            : `📌 ${formatRespawnDate(nextSpawn(b))}`
-          }
-      </div>
-      <div class="time">${formatCountdown(b)}</div>
-      ${isAdmin ? `
+  function getGuildIcon(guild){
+     if(guild === "TK MAIN") return "⚔️";
+    if(guild === "ALLIANCE") return "🛡️";
+    return "";
+  }
+    
+    
+sec.innerHTML += `
+  <div class="boss ${cls}">
+
+    <div class="boss-name">
+      <strong>${icon} ${boss.name}</strong>
+      <small>${boss.guild}</small>
+      <small>${highlightText(b.l, query)}</small>
+    </div>
+
+    <div class="status">
+      <span class="dot" style="background:${col}"></span>
+      ${t}
+    </div>
+
+    <div class="schedule">
+      ${
+        b.h
+          ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
+          : `📌 ${formatRespawnDate(nextSpawn(b))}`
+      }
+    </div>
+
+    <div class="time">${formatCountdown(b)}</div>
+
+    ${isAdmin ? `
       <div>
         <button onclick="killBoss('${b.n}')">Kill</button>
         <button onclick="viewLogs('${b.n}')">Logs</button>
         <button onclick="resetBoss('${b.n}')">Reset</button>
-      </div>` : ""}
-    </div>
-  `;
-});
+      </div>
+    ` : ""}
 
+  </div>
+`;
+    
   return sec;
 }
 
