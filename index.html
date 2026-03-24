@@ -310,7 +310,8 @@ function getProgressPercent(b){
   const lastKill = data[b.n]?.lastKill;
   const next = nextSpawn(b, lastKill);
 
-  if(!b.h || !lastKill) return 0;
+  if(!b.h) return 0;
+  if(!lastKill) return 100;
 
   const total = b.h * 3600000;
   const elapsed = Date.now() - lastKill;
@@ -341,7 +342,7 @@ function formatCountdown(b){
 }
 
   
-  
+  ////////////////////////////////////////////////////////
 // Admin actions
 window.killBoss = async (bossName) => {
   if (!isAdmin) return;
