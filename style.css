@@ -181,9 +181,9 @@ button:hover {
 }
 
 @media(max-width:900px){
-  .boss {
-    grid-template-columns:1fr;
-    gap:6px;
+  body.compact .boss {
+    gap: 4px;
+    padding: 5px;
   }
 }
 
@@ -259,9 +259,17 @@ button:hover {
 }
 
 /* ===== COMPACT MODE ===== */
+body.compact .section .boss:first-child {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
 body.compact .boss {
-  padding: 6px 8px;
+  grid-template-columns: 1.4fr .7fr .8fr .8fr auto;
+  padding: 5px 6px;
+  gap: 6px;
   font-size: 12px;
+  
 }
 
 body.compact .boss-name strong {
