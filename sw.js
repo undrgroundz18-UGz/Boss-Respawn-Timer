@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2"; // 🔥 change this every update
+const CACHE_VERSION = "v3"; // 🔥 bump version
 const CACHE_NAME = `boss-respawn-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
