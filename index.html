@@ -666,9 +666,9 @@ sec.innerHTML += `
     
     ${isAdmin ? `
       <div>
-        <button onclick="killBoss('${b.n}')">Kill</button>
-        <button onclick="viewLogs('${b.n}')">Logs</button>
-        <button onclick="resetBoss('${b.n}')">Reset</button>
+        <button onclick="killBoss(${JSON.stringify(b.n)})">Kill</button>
+        <button onclick="viewLogs(${JSON.stringify(b.n)})">Logs</button>
+        <button onclick="resetBoss(${JSON.stringify(b.n)})">Reset</button>
       </div>
     ` : ""}
   
