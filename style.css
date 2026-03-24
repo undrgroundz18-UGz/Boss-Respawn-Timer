@@ -258,4 +258,27 @@ button:hover {
   100%{ box-shadow: 0 0 0 rgba(76,175,80,0); }
 }
 
+/* ===== COMPACT MODE ===== */
+body.compact .boss {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+body.compact .boss-name strong {
+  font-size: 13px;
+}
+
+body.compact .boss small {
+  display: none; /* optional: hide extra info */
+}
+
+body.compact .time {
+  font-size: 11px;
+}
+
+body.compact h2 {
+  font-size: 14px;
+  margin: 6px 0;
+}
+
 
