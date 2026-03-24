@@ -139,7 +139,7 @@ async function checkAdmin(){
     "Milavy","Wannitas","Metus","Duplican","Shuliar","Ringor",
     "Roderick","Gareth","Titore","Larba","Catena","Auraq",
     "Secreta","Ordo","Asta","Supore","Chaiflock","Benji",
-    "Icaruthia","Motti","Nevaeh","Tumier"
+    "Icaruthia","Motti","Nevaeh","Tumier","Rakajeth","Libitania"
   ]
 };
 
@@ -685,6 +685,8 @@ function renderSection(title, list){
     const bossGuild = getBossGuild(b.n);
     const icon = getGuildIcon(bossGuild);
 
+    // ✅ Allow Kransia no matter what filter is selected
+    if (b.l !== "Kransia") {
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
 
     const query = searchInput.value.toLowerCase().trim();
