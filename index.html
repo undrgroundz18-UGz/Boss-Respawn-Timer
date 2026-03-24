@@ -688,8 +688,10 @@ function renderSection(title, list){
     // ✅ Allow Kransia no matter what filter is selected
     if (b.l !== "Kransia") {
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
+    }
 
-    const query = searchInput.value.toLowerCase().trim();
+    // ✅ MOVE query OUTSIDE the Kransia if block
+const query = searchInput.value.toLowerCase().trim();
 
 if(query){
   const keywords = query.split(" ").filter(k => k);
