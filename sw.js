@@ -1,5 +1,4 @@
-const CACHE_VERSION = "v3"; // 🔥 bump version
-const CACHE_NAME = "boss-timer-v4";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `boss-respawn-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
@@ -15,7 +14,7 @@ self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
-  self.skipWaiting(); // 🔥 force new SW
+  self.skipWaiting();
 });
 
 // ACTIVATE
@@ -24,15 +23,14 @@ self.addEventListener("activate", event => {
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
-          if (key !== "boss-timer-v4") {
+          if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
       )
     )
   );
-});
-  self.clients.claim(); // 🔥 control open tabs
+  self.clients.claim();
 });
 
 // FETCH (network-first for HTML)
