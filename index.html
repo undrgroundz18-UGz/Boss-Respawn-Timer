@@ -21,7 +21,7 @@
 
   <div class="search-filter">
     <input id="search" type="text" placeholder="Search boss...">
-
+    
       <!-- GUILD FILTER -->
     <select id="filter">
       <option value="ALL">ALL</option>
@@ -36,6 +36,7 @@
       <option value="status"> Status</option>
     </select>
     
+    <button id="compactToggle">Compact: OFF</button>
     <button id="resetAllBtn" style="display:none">Reset All</button>
   </div>
 </header>
@@ -137,7 +138,16 @@ async function checkAdmin(){
   ]
 };
 
+// Compact   
+let isCompact = false;  
   
+const compactBtn = document.getElementById("compactToggle");
+
+compactBtn.onclick = () => {
+  isCompact = !isCompact;
+  compactBtn.textContent = `Compact: ${isCompact ? "ON" : "OFF"}`;
+  document.body.classList.toggle("compact", isCompact);
+};
   
 // Boss list
 let bosses = [];
