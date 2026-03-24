@@ -628,7 +628,7 @@ function renderSection(title, list){
     const [t, cls, col] = getStatus(b, data[b.n]?.lastKill);
     const selectedGuild = filterSelect.value;
     const bossGuild = getBossGuild(b.n);
-    const icon = getGuildIcon(b.guild);
+    const icon = getGuildIcon(bossGuild);
 
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
 
@@ -639,7 +639,7 @@ function renderSection(title, list){
       <div class="boss ${cls}">
         
         <div class="boss-name">
-          <strong>${icon} ${b.n}</strong>
+          <strong>${icon ? icon + " " : ""}${b.n}</strong>
           <small>${b.guild}</small>
           <small>${highlightText(b.l, query)}</small>
         </div>
