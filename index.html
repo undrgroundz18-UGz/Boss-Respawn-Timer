@@ -169,12 +169,15 @@ progressBtn.onclick = () => {
 // Boss list
 let bosses = [];
 
-fetch("data.json")
-.then(r => r.json())
-.then(d => {
-  bosses = [...d.hourly, ...d.fixed];
-  render();
-});
+(async () => {
+  await checkAdmin();
+
+  const jsonResp = await fetch("data.json");
+  const jsonData = await jsonResp.json();
+  bosses = [...jsonData.hourly, ...jsonData.fixed];
+
+  // continue Firestore + render
+})();
 
 
 
