@@ -706,51 +706,51 @@ if(query){
     
 
     sec.innerHTML += `
-      <div class="boss ${cls}">
-        
-        <div class="boss-name">
-          <strong>${icon ? icon + " " : ""}${highlightText(b.n, query)}</strong>
-          <small>${b.guild || ""}</small>
-          <small>${b.l ? highlightText(b.l, query) : ""}</small>
-        </div>
-        
-        <div class="status">
-          <span class="dot" style="background:${col}"></span>
-          ${t}
-        </div>
-      
-        <div class="schedule">
-          ${
-            b.h
-              ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
-              : `📌 ${formatRespawnDate(nextSpawn(b))}`
-          }
-        </div>
-      
-        <div class="time">
-          ${
-            showProgress
-              ? `<div class="progress-bar">
-                   <div class="progress-fill" style="width:${getProgressPercent(b)}%"></div>
-                 </div>`
-              : formatCountdown(b)
-          }
-        </div>
-        
-        ${isAdmin ? `
-          <div class="actions">
-            <button onclick="killBoss('${b.n}')">Kill</button>
-            <button onclick="viewLogs('${b.n}')">Logs</button>
-            <button onclick="resetBoss('${b.n}')">Reset</button>
-          </div>
-        ` : ""}
-      
+  <div class="boss ${cls}">
+    
+    <div class="boss-name">
+      <strong>${icon ? icon + " " : ""}${highlightText(b.n, query)}</strong>
+      <small>${b.guild || ""}</small>
+      <small>${b.l ? highlightText(b.l, query) : ""}</small>
     </div>
-  `;
-});
+    
+    <div class="status">
+      <span class="dot" style="background:${col}"></span>
+      ${t}
+    </div>
+  
+    <div class="schedule">
+      ${
+        b.h
+          ? `${formatRespawnDate(nextSpawn(b))} <span class="respawn-rule">· ⏳${b.h}h</span>`
+          : `📌 ${formatRespawnDate(nextSpawn(b))}`
+      }
+    </div>
+  
+    <div class="time">
+      ${
+        showProgress
+          ? `<div class="progress-bar">
+               <div class="progress-fill" style="width:${getProgressPercent(b)}%"></div>
+             </div>`
+          : formatCountdown(b)
+      }
+    </div>
+    
+    ${isAdmin ? `
+      <div class="actions">
+        <button onclick="killBoss('${b.n}')">Kill</button>
+        <button onclick="viewLogs('${b.n}')">Logs</button>
+        <button onclick="resetBoss('${b.n}')">Reset</button>
+      </div>
+    ` : ""}
+    
+  </div>
+`;
+    });
 
-  return sec;
-}
+    return sec;
+  }
 
 
 
