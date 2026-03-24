@@ -641,18 +641,18 @@ if(otherFixed.length)
     
 sec.innerHTML += `
   <div class="boss ${cls}">
-
+    
     <div class="boss-name">
       <strong>${icon} ${b.n}</strong>
       <small>${bossGuild}</small>
       <small>${highlightText(b.l, query)}</small>
     </div>
-
+    
     <div class="status">
       <span class="dot" style="background:${col}"></span>
       ${t}
     </div>
-
+  
     <div class="schedule">
       ${
         b.h
@@ -660,9 +660,9 @@ sec.innerHTML += `
           : `📌 ${formatRespawnDate(nextSpawn(b))}`
       }
     </div>
-
+  
     <div class="time">${formatCountdown(b)}</div>
-
+    
     ${isAdmin ? `
       <div>
         <button onclick="killBoss('${b.n}')">Kill</button>
@@ -670,7 +670,7 @@ sec.innerHTML += `
         <button onclick="resetBoss('${b.n}')">Reset</button>
       </div>
     ` : ""}
-
+  
   </div>
 `;
     
