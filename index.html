@@ -537,9 +537,9 @@ function formatCountdown(b){
 
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  .toString()
-  .padStart(2, "0");
+  const s = Math.floor((diff % 60000) / 1000)
+    .toString()
+    .padStart(2, "0");
 
   return `${h}h ${m}m ${s}s`;
 }
