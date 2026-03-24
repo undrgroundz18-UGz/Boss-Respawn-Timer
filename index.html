@@ -324,8 +324,6 @@ function getProgressPercent(b){
   return percent;
 }
 
-  
-//////////////////////////////////////////////////////////
 function formatCountdown(b){
   const next = nextSpawn(b, data[b.n]?.lastKill);
   const diff = next ? next - Date.now() : -1;
@@ -371,8 +369,6 @@ console.log("Killed at:", new Date(time).toLocaleString());
 console.log("Respawns at:", new Date(respawnTime).toLocaleString());
 console.log("====================");
 
-        // Add new log at the top
-    logs.unshift({ killedAt: time, respawnAt: respawnTime });
 
 // add new log sa pinaka taas
 logs.unshift({
