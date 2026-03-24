@@ -599,8 +599,14 @@ if(otherFixed.length)
 
   function highlightText(text, query){
   if(!query) return text;
-  const regex = new RegExp(`(${query})`, "gi");
-  return text.replace(regex, `<mark>$1</mark>`);
+  const keywords = query.split(" ").filter(k => k);
+  let result = text;
+  keywords.forEach(k => {
+    const regex = new RegExp(`(${k})`, "gi");
+    result = result.replace(regex, `<mark>$1</mark>`);
+  });
+
+  return result;
 }
 
   function getGuildIcon(guild){
@@ -633,13 +639,26 @@ function renderSection(title, list){
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
 
     const query = searchInput.value.toLowerCase().trim();
-    if(query && !b.n.toLowerCase().includes(query)) return;
+
+if(query){
+  const keywords = query.split(" ").filter(k => k);
+
+  const name = b.n.toLowerCase();
+  const loc = (b.l || "").toLowerCase();
+
+  const match = keywords.every(k => 
+    name.includes(k) || loc.includes(k)
+  );
+
+  if(!match) return;
+}
+    
 
     sec.innerHTML += `
       <div class="boss ${cls}">
         
         <div class="boss-name">
-          <strong>${icon ? icon + " " : ""}${b.n}</strong>
+          <strong>${icon ? icon + " " : ""}${highlightText(b.n, query)}</strong>
           <small>${b.guild || ""}</small>
           <small>${b.l ? highlightText(b.l, query) : ""}</small>
         </div>
