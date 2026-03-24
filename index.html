@@ -738,12 +738,12 @@ if(query){
         </div>
         
         ${isAdmin ? `
-          <div>
+          <div class="actions">
             <button onclick="killBoss('${b.n}')">Kill</button>
             <button onclick="viewLogs('${b.n}')">Logs</button>
             <button onclick="resetBoss('${b.n}')">Reset</button>
-        </div>
-      ` : ""}
+          </div>
+        ` : ""}
       
     </div>
   `;
