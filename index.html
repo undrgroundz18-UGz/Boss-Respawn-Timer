@@ -597,6 +597,13 @@ if(otherFixed.length)
   });
 }
 
+  function highlightText(text, query){
+  if(!query) return text;
+  const regex = new RegExp(`(${query})`, "gi");
+  return text.replace(regex, `<mark>$1</mark>`);
+}
+
+  
   function renderSection(title, list){
   const sec = document.createElement("div");
   sec.className = "section";
@@ -612,6 +619,7 @@ if(otherFixed.length)
     </div>
   `;
 
+
   list.forEach(b=>{
     const [t, cls, col] = getStatus(b, data[b.n]?.lastKill);
     const selectedGuild = filterSelect.value;
@@ -625,12 +633,8 @@ if(otherFixed.length)
     sec.innerHTML += `
       <div class="boss ${cls}">
         <div>
-      function highlightText(text, query){
-        if(!query) return text;
-        const regex = new RegExp(`(${query})`, "gi");
-        return text.replace(regex, `<mark>$1</mark>`);
-      }
-          <small>${b.l}</small>
+
+          <small>${highlightText(b.l, query)}</small>
         </div>
         <div class="status">
           <span class="dot" style="background:${col}"></span>${t}
