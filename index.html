@@ -833,25 +833,25 @@ if(todayBox){
 }
 
   //////////////////////////////////////////////////////////////////////
-    if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
-    .then(reg => {
-      console.log("✅ Service Worker registered:", reg);
+  //if ("serviceWorker" in navigator) {
+  //navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+  //.then(reg => {
+  //    console.log("✅ Service Worker registered:", reg);
 
-      reg.addEventListener("updatefound", () => {
-        const newWorker = reg.installing;
-        newWorker.addEventListener("statechange", () => {
-          if (
-            newWorker.state === "installed" &&
-            navigator.serviceWorker.controller
-          ) {
-            location.reload(); // auto reload new version
-          }
-        });
-      });
-    })
-    .catch(err => console.error("SW registration failed:", err));
-}
+    //  reg.addEventListener("updatefound", () => {
+      //  const newWorker = reg.installing;
+        //newWorker.addEventListener("statechange", () => {
+        //  if (
+        //    newWorker.state === "installed" &&
+        //    navigator.serviceWorker.controller
+     //     ) {
+     //       location.reload(); // auto reload new version
+     //     }
+     //   });
+ //     });
+ //   })
+ //   .catch(err => console.error("SW registration failed:", err));
+  //}
 
 // Optional: reschedule only for future bosses every 5 minutes
 //setInterval(() => {
