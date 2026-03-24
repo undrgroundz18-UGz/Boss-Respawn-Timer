@@ -497,20 +497,33 @@ function timeUntilSpawn(b, lastKillOverride){
 }
 
 // GET STATUS
+function isSameDay(ts){
+  const now = new Date();
+  const d = new Date(ts);
+
+  return now.getFullYear() === d.getFullYear() &&
+         now.getMonth() === d.getMonth() &&
+         now.getDate() === d.getDate();
+}
+
 function getStatus(b, lastKillOverride){
   const ONE_HOUR = 60*60*1000;
   const FOUR_HOURS = 4*ONE_HOUR;
-  const TWELVE_HOURS = 12*ONE_HOUR;
+  const TWENTY_FOUR_HOURS = 24*ONE_HOUR;
 
-  const diff = timeUntilSpawn(b, lastKillOverride);
+  const next = nextSpawn(b, lastKillOverride);
+  const diff = next - Date.now();
 
   if(diff <= 0) return ["ALIVE","alive","#4caf50"];
   if(diff <= ONE_HOUR) return ["VERY SOON","very-soon","#ff5252"];
   if(diff <= FOUR_HOURS) return ["SOON","soon","#ff9800"];
-  if(diff <= TWELVE_HOURS) return ["TODAY","today","#ffc107"];
+
+  // ✅ NEW TODAY (same calendar day)
+  if(isSameDay(next)) return ["TODAY","today","#ffc107"];
+
+  // ✅ NEW SCHEDULED
   return ["SCHEDULED","scheduled","#9e9e9e"];
 }
-
 
   
 //////////////////////////////////////////////////////////
@@ -713,7 +726,7 @@ bosses.forEach(b=>{
 });
 
 
-  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
 
 function sortByPriority(list){
   return list.sort((a,b)=>{
