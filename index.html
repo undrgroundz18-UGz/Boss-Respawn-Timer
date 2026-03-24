@@ -603,6 +603,11 @@ if(otherFixed.length)
   return text.replace(regex, `<mark>$1</mark>`);
 }
 
+  function getGuildIcon(guild){
+  if(guild === "TK MAIN") return "⚔️";
+  if(guild === "ALLIANCE") return "🛡️";
+  return "";
+}
   
   function renderSection(title, list){
   const sec = document.createElement("div");
@@ -632,11 +637,7 @@ if(otherFixed.length)
     if(query && !b.n.toLowerCase().includes(query)) return;
 
 
-  function getGuildIcon(guild){
-     if(guild === "TK MAIN") return "⚔️";
-    if(guild === "ALLIANCE") return "🛡️";
-    return "";
-  }
+  
     
     
 sec.innerHTML += `
@@ -644,7 +645,7 @@ sec.innerHTML += `
     
     <div class="boss-name">
       <strong>${icon} ${b.n}</strong>
-      <small>${bossGuild}</small>
+      <small>${b.guild}</small>
       <small>${highlightText(b.l, query)}</small>
     </div>
     
