@@ -627,8 +627,8 @@ if(otherFixed.length)
     const icon = getGuildIcon(b.guild);
 
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
+    
     const query = searchInput.value.toLowerCase().trim();
-
     if(query && !b.n.toLowerCase().includes(query)) return;
 
 
@@ -643,8 +643,8 @@ sec.innerHTML += `
   <div class="boss ${cls}">
 
     <div class="boss-name">
-      <strong>${icon} ${boss.name}</strong>
-      <small>${boss.guild}</small>
+      <strong>${icon} ${b.n}</strong>
+      <small>${bossGuild}</small>
       <small>${highlightText(b.l, query)}</small>
     </div>
 
