@@ -609,7 +609,7 @@ if(otherFixed.length)
   return "";
 }
   
-  function renderSection(title, list){
+function renderSection(title, list){
   const sec = document.createElement("div");
   sec.className = "section";
 
@@ -624,7 +624,6 @@ if(otherFixed.length)
     </div>
   `;
 
-
   list.forEach(b => {
     const [t, cls, col] = getStatus(b, data[b.n]?.lastKill);
     const selectedGuild = filterSelect.value;
@@ -632,28 +631,24 @@ if(otherFixed.length)
     const icon = getGuildIcon(b.guild);
 
     if(selectedGuild !== "ALL" && bossGuild !== selectedGuild) return;
-    
+
     const query = searchInput.value.toLowerCase().trim();
     if(query && !b.n.toLowerCase().includes(query)) return;
 
-
-  
-    
-
     sec.innerHTML += `
       <div class="boss ${cls}">
-    
+        
         <div class="boss-name">
           <strong>${icon} ${b.n}</strong>
           <small>${b.guild}</small>
           <small>${highlightText(b.l, query)}</small>
         </div>
-    
+        
         <div class="status">
           <span class="dot" style="background:${col}"></span>
           ${t}
         </div>
-    
+      
         <div class="schedule">
           ${
             b.h
@@ -661,9 +656,9 @@ if(otherFixed.length)
               : `📌 ${formatRespawnDate(nextSpawn(b))}`
           }
         </div>
-  
+      
         <div class="time">${formatCountdown(b)}</div>
-    
+        
         ${isAdmin ? `
           <div>
             <button onclick="killBoss(${JSON.stringify(b.n)})">Kill</button>
@@ -671,12 +666,13 @@ if(otherFixed.length)
             <button onclick="resetBoss(${JSON.stringify(b.n)})">Reset</button>
           </div>
         ` : ""}
-        
+      
       </div>
     `;
-  }}
-   
+  });
+
   return sec;
+}
 
 
 
