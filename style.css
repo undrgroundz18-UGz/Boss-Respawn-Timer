@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="style.css">
+
+#sort {
+  background: #212327;
+  color: #fff;
+}
+
+#sort option {
+  background: #212327;
+  color: #fff;
+}
