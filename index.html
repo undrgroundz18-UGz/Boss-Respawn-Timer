@@ -107,7 +107,7 @@ let isAdmin = false;
 async function checkAdmin(){
   if(new URLSearchParams(location.search).get("admin") !== "1") return;
 
-
+  
   const input = prompt("Enter admin code:");
   if(!input) return;
 
@@ -124,6 +124,7 @@ async function checkAdmin(){
   }else{
     alert("❌ Invalid admin code");
     render();
+    console.log("ADMIN CHECK RESULT:", isAdmin);
   }
 }
 
