@@ -37,6 +37,7 @@
     </select>
     
     <button id="compactToggle">Compact: OFF</button>
+    <button id="progressToggle">Progress: OFF</button>
     <button id="resetAllBtn" style="display:none">Reset All</button>
   </div>
 </header>
@@ -138,7 +139,7 @@ async function checkAdmin(){
   ]
 };
 
-// Compact   
+// Compact and Progress Bar
 let isCompact = false;  
   
 const compactBtn = document.getElementById("compactToggle");
@@ -148,6 +149,18 @@ compactBtn.onclick = () => {
   compactBtn.textContent = `Compact: ${isCompact ? "ON" : "OFF"}`;
   document.body.classList.toggle("compact", isCompact);
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+let showProgress = false;
+
+const progressBtn = document.getElementById("progressToggle");
+
+progressBtn.onclick = () => {
+  showProgress = !showProgress;
+  progressBtn.textContent = `Progress: ${showProgress ? "ON" : "OFF"}`;
+  render();
+};
+
   
 // Boss list
 let bosses = [];
@@ -291,9 +304,27 @@ function getStatus(b, lastKillOverride){
   return ["SCHEDULED","scheduled","#9e9e9e"];
 }
 
-  
+  //compact and progress bar Function
 //////////////////////////////////////////////////////////
-  
+function getProgressPercent(b){
+  const lastKill = data[b.n]?.lastKill;
+  const next = nextSpawn(b, lastKill);
+
+  if(!b.h || !lastKill) return 0;
+
+  const total = b.h * 3600000;
+  const elapsed = Date.now() - lastKill;
+
+  let percent = (elapsed / total) * 100;
+
+  if(percent < 0) percent = 0;
+  if(percent > 100) percent = 100;
+
+  return percent;
+}
+
+function formatCountdown(b){
+//////////////////////////////////////////////////////////
 
 function formatCountdown(b){
   const next = nextSpawn(b, data[b.n]?.lastKill);
@@ -686,7 +717,15 @@ if(query){
           }
         </div>
       
-        <div class="time">${formatCountdown(b)}</div>
+        <div class="time">
+          ${
+            showProgress
+            ? `<div class="progress-bar">
+            <div class="progress-fill" style="width:${getProgressPercent(b)}%"></div>
+        </div>`
+            : formatCountdown(b)
+            }
+        </div>
         
         ${isAdmin ? `
           <div>
