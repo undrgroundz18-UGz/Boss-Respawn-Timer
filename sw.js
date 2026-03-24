@@ -1,4 +1,5 @@
 const CACHE_VERSION = "v3"; // 🔥 bump version
+const CACHE_NAME = "boss-timer-v4";
 const CACHE_NAME = `boss-respawn-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
@@ -22,10 +23,15 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.map(k => k !== CACHE_NAME && caches.delete(k))
+        keys.map(key => {
+          if (key !== "boss-timer-v4") {
+            return caches.delete(key);
+          }
+        })
       )
     )
   );
+});
   self.clients.claim(); // 🔥 control open tabs
 });
 
