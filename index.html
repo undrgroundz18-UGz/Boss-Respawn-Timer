@@ -323,9 +323,8 @@ function getProgressPercent(b){
   return percent;
 }
 
-function formatCountdown(b){
+  
 //////////////////////////////////////////////////////////
-
 function formatCountdown(b){
   const next = nextSpawn(b, data[b.n]?.lastKill);
   const diff = next ? next - Date.now() : -1;
