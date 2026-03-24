@@ -275,11 +275,19 @@ button:hover {
 
   <div class="search-filter">
     <input id="search" type="text" placeholder="Search boss...">
+    
     <select id="filter">
       <option value="ALL">ALL</option>
       <option value="TK MAIN">TK MAIN</option>
       <option value="ALLIANCE">ALLIANCE</option>
     </select>
+
+    <select id="sort">
+      <option value="countdown">Sort: Countdown</option>
+      <option value="name">Sort: Name</option>
+      <option value="status">Sort: Status</option>
+    </select>
+    
     <button id="resetAllBtn" style="display:none">Reset All</button>
   </div>
 </header>
@@ -654,9 +662,11 @@ window.resetBoss = async (bossName) => {
 // Search/filter
 const searchInput=document.getElementById('search');
 const filterSelect=document.getElementById('filter');
+const sortSelect = document.getElementById('sort');
+  
 searchInput.addEventListener('input', render);
 filterSelect.addEventListener('change', render);
-
+sortSelect.addEventListener('change', render);
 
 
   
@@ -735,6 +745,29 @@ bosses.forEach(b=>{
 
     const TWELVE_HOURS = 12 * ONE_HOUR;
 
+  function sortList(list){
+  const mode = sortSelect.value;
+
+  if(mode === "name"){
+    return list.sort((a,b)=> a.n.localeCompare(b.n));
+  }
+
+  if(mode === "status"){
+    return list.sort((a,b)=>{
+      const sa = getStatus(a, data[a.n]?.lastKill)[0];
+      const sb = getStatus(b, data[b.n]?.lastKill)[0];
+      return sa.localeCompare(sb);
+    });
+  }
+
+  // default: countdown
+  return list.sort((a,b)=>{
+    const ta = timeUntilSpawn(a);
+    const tb = timeUntilSpawn(b);
+    return ta - tb;
+  });
+}
+  
 function sortByPriority(list){
   return list.sort((a,b)=>{
     const ta = timeUntilSpawn(a);
@@ -751,7 +784,7 @@ function sortByPriority(list){
 }
 
 if(todayFixed.length)
-  root.appendChild(renderSection("FIXED RESPAWNS TODAY", sortByPriority(todayFixed)));
+  root.appendChild(renderSection("FIXED RESPAWNS TODAY", sortList(todayFixed)));
 
 function sortDynamicBosses(list){
   return list.sort((a,b)=>{
@@ -781,7 +814,7 @@ function sortDynamicBosses(list){
 
 if(dynamic.length)
   root.appendChild(
-    renderSection("DYNAMIC BOSSES", sortDynamicBosses(dynamic))
+    renderSection("DYNAMIC BOSSES", sortList(dynamic))
   );
 
 
