@@ -120,6 +120,7 @@ async function checkAdmin(){
 
   if(hash === ADMIN_HASH){
     isAdmin = true;
+    window.isAdmin = true; // ✅
     console.log("✅ ADMIN MODE");
   }else{
     alert("❌ Invalid admin code");
