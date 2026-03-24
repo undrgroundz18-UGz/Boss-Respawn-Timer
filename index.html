@@ -640,7 +640,7 @@ function renderSection(title, list){
         
         <div class="boss-name">
           <strong>${icon ? icon + " " : ""}${b.n}</strong>
-          <small>${b.guild}</small>
+          <small>${b.guild || ""}</small>
           <small>${b.l ? highlightText(b.l, query) : ""}</small>
         </div>
         
