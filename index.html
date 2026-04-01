@@ -25,8 +25,10 @@
       <!-- GUILD FILTER -->
     <select id="filter">
       <option value="ALL">ALL</option>
-      <option value="TK MAIN">TK MAIN</option>
-      <option value="ALLIANCE">ALLIANCE</option>
+      <option value="BM">BM</option>
+      <option value="DYNA">DYNA</option>
+      <option value="REQUIEM">REQUIEM</option>
+      <option value="DANKETSU">DANKETSU</option>
     </select>
 
       <!-- SORT FILTER -->
@@ -130,16 +132,22 @@ async function checkAdmin(){
 
 
   const GUILD_MAP = {
-  "ALLIANCE": [
-    "Venatus","Viorent","Ego","Clemantis","Livera","Araneo",
-    "Undomiel","Saphirus","Neutro","Lady Dalia","General Aquleus",
-    "Thymele","Amentis","Baron Braudmore"
+  "BM": [
+    "Tumier","Nevaeh","Motti","Icaruthia",
+    "Ralajeth","Libitina","Benji","Chaiflock"
   ],
-  "TK MAIN": [
-    "Milavy","Wannitas","Metus","Duplican","Shuliar","Ringor",
-    "Roderick","Gareth","Titore","Larba","Catena","Auraq",
-    "Secreta","Ordo","Asta","Supore","Chaiflock","Benji",
-    "Tumier","Rakajeth","Libitania"
+  "DYNA": [
+    "Supore","Asta","Ordo","Secreta",
+    "Auraq","Catena","Titore","Gareth"
+  ],
+  "REQUIEM": [
+    "Roderick","Ringor","Shuliar","Duplican",
+    "Metus","Wannitas","Milavy","Baron Braudmore","Amentis"
+  ],
+  "DANKETSU": [
+    "Thymele","General Aquleus","Lady Dalia","Neutro",
+    "Saphirus","Undomiel","Araneo","Livera",
+    "Clemantis","Ego","Viorent","Venatus"
   ]
 };
 
@@ -479,8 +487,10 @@ sortSelect.addEventListener('change', render);
 // Render
 
 function getBossGuild(bossName){
-  if(GUILD_MAP.ALLIANCE.includes(bossName)) return "ALLIANCE";
-  if(GUILD_MAP["TK MAIN"].includes(bossName)) return "TK MAIN";
+  if(GUILD_MAP.BM.includes(bossName)) return "BM";
+  if(GUILD_MAP.DYNA.includes(bossName)) return "DYNA";
+  if(GUILD_MAP.REQUIEM.includes(bossName)) return "REQUIEM";
+  if(GUILD_MAP.DANKETSU.includes(bossName)) return "DANKETSU";
   return "ALL";
 }
 
@@ -659,8 +669,10 @@ if(otherFixed.length)
 }
 
   function getGuildIcon(guild){
-  if(guild === "TK MAIN") return "⚔️";
-  if(guild === "ALLIANCE") return "🛡️";
+  if(guild === "BM") return "🟢";
+  if(guild === "DYNA") return "🟡";
+  if(guild === "REQUIEM") return "🔵";
+  if(guild === "DANKETSU") return "🟣";
   return "";
 }
   
