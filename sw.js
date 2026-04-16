@@ -12,7 +12,13 @@ const ASSETS = [
 // INSTALL
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(async cache => {
+      try {
+        await cache.addAll(ASSETS);
+      } catch (err) {
+        console.log("Cache failed:", err);
+      }
+    })
   );
   self.skipWaiting();
 });
