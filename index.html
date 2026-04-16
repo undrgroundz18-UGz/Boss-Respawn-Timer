@@ -914,12 +914,12 @@ function scheduleBossAlerts(boss){
     
     // only schedule if not notified yet AND respawn is in the future
     if(notified[alertKey] || respawn - minBefore*60*1000 <= now) return;
-    notified[alertKey] = true; // mark immediately to prevent rescheduling
-
+    
     const delay = respawn - minBefore*60*1000 - now;
     if(delay <= 0) return;
 
     setTimeout(() => {
+      notified[alertKey] = true; // mark immediately to prevent rescheduling
       // create notification
       let notif;
       if(Notification.permission === "granted"){
@@ -950,26 +950,19 @@ if(todayBox){
   todayBox.innerHTML = `Today: ${t.emoji} ${t.name}`;
 }
 
-  //////////////////////////////////////////////////////////////////////
-  //if ("serviceWorker" in navigator) {
-  //navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
-  //.then(reg => {
-  //    console.log("✅ Service Worker registered:", reg);
-
-    //  reg.addEventListener("updatefound", () => {
-      //  const newWorker = reg.installing;
-        //newWorker.addEventListener("statechange", () => {
-        //  if (
-        //    newWorker.state === "installed" &&
-        //    navigator.serviceWorker.controller
-     //     ) {
-     //       location.reload(); // auto reload new version
-     //     }
-     //   });
- //     });
- //   })
- //   .catch(err => console.error("SW registration failed:", err));
-  //}
+ <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js')
+        .then(function(registration) {
+          console.log('Service Worker registered successfully:', registration.scope);
+        })
+        .catch(function(error) {
+          console.log('Service Worker registration failed:', error);
+        });
+    });
+  }
+</script>
 
 // Optional: reschedule only for future bosses every 5 minutes
 //setInterval(() => {
