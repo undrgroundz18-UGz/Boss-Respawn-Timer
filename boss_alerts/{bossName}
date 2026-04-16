@@ -1,0 +1,9 @@
+{
+  "boss": "Motti",
+  "respawnAt": 1737600000000,
+  "alerts": {
+    "60": true,
+    "10": false
+  },
+  "updatedAt": 1737500000000
+}
