@@ -64,8 +64,14 @@ console.log("SCRIPT LOADED");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import { 
-  getFirestore, enableIndexedDbPersistence
+import {
+  getFirestore,
+  enableIndexedDbPersistence,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { 
