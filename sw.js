@@ -9,6 +9,39 @@ const ASSETS = [
   "./icon-512.png"
 ];
 
+// =====================
+// FIREBASE (REQUIRED FIRST)
+// =====================
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
+  authDomain: "boss-respawn-timer.firebaseapp.com",
+  projectId: "boss-respawn-timer",
+  messagingSenderId: "767083470052",
+  appId: "1:767083470052:web:17d7453fe66700321760f1"
+});
+
+const messaging = firebase.messaging();
+
+// 🔔 BACKGROUND NOTIF
+messaging.onBackgroundMessage((payload) => {
+  console.log("Background message received:", payload);
+
+  self.registration.showNotification(
+    payload.notification?.title || "Boss Alert",
+    {
+      body: payload.notification?.body || "",
+      icon: "./icon-192.png"
+    }
+  );
+});
+
+// =====================
+// SERVICE WORKER CACHE
+// =====================
+
 // INSTALL
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -29,9 +62,7 @@ self.addEventListener("activate", event => {
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       )
     )
@@ -39,7 +70,7 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// FETCH (network-first for HTML)
+// FETCH
 self.addEventListener("fetch", event => {
   if (event.request.mode === "navigate") {
     event.respondWith(
