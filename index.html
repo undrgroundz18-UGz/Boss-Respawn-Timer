@@ -114,10 +114,11 @@ async function initFCM() {
   '/Boss-Respawn-Timer/firebase-messaging-sw.js',
   { scope: '/Boss-Respawn-Timer/' }
 );
+    console.log("SW registered:", registration);
 
     await navigator.serviceWorker.ready;
 
-    console.log("SW ACTIVE:", registration.active);
+    console.log("SW ACTIVE OK");
 
     const token = await getToken(messaging, {
       vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
