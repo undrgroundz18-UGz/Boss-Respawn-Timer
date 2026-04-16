@@ -516,10 +516,17 @@ window.resetBoss = async (bossName) => {
   }
 
   if (confirm("Reset boss last kill?")) {
-    try {
+  try {
+    if (!bossName) {
+      console.error("bossName missing");
+      alert("Invalid boss selected.");
+      return;
+    }
+      console.log("Resetting boss:", bossName);
       await updateDoc(doc(db, "bosses", bossName), {
         lastKill: 0,
       });
+
       alert(`${bossName} reset!`);
       render(); // refresh UI immediately
     } catch (e) {
