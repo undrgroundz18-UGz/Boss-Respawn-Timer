@@ -811,6 +811,34 @@ function scheduleBossAlerts(boss){
   const now = Date.now();
   const respawn = nextSpawn(boss);
 
+    // =========================
+  // CP ALERT EXTENSION
+  // =========================
+  if (boss.cp) {
+    const cpAlertKey = `${boss.n}-cp`;
+
+    if (!notified[cpAlertKey]) {
+      const cpTime = respawn - (boss.cp * 60 * 1000); 
+      const delay = cpTime - Date.now();
+
+      if (delay > 0) {
+        setTimeout(() => {
+          if (Notification.permission === "granted") {
+            new Notification(`⚔️ CP ALERT: ${boss.n}`, {
+              body: `CP phase starting soon for ${boss.n}`,
+            });
+          }
+
+          const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
+          audio.play().catch(()=>{});
+        }, delay);
+
+        notified[cpAlertKey] = true;
+      }
+    }
+  }
+
+  
   alertTimes.forEach(minBefore => {
     const alertKey = `${boss.n}-${minBefore}`;
     
