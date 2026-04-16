@@ -10,3 +10,13 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  self.registration.showNotification(
+    payload.notification?.title || "Boss Alert",
+    {
+      body: payload.notification?.body || "",
+      icon: "/Boss-Respawn-Timer/icon-192.png"
+    }
+  );
+});
