@@ -109,12 +109,11 @@ async function initFCM() {
 
     console.log("Registering SW...");
 
+    // ✅ IMPORTANT FIX: use relative path OR consistent base path
     const registration = await navigator.serviceWorker.register(
-      './firebase-messaging-sw.js',
-      { scope: './' }
+      './firebase-messaging-sw.js'
     );
 
-    // 🔥 IMPORTANT: wait for SW to become active
     await navigator.serviceWorker.ready;
 
     console.log("SW ACTIVE:", registration.active);
@@ -131,8 +130,11 @@ async function initFCM() {
   }
 }
 
-initFCM();
+// expose for console testing
 window.initFCM = initFCM;
+
+// run once
+initFCM();
 
 // Foreground notifications
 onMessage(messaging, payload => {
