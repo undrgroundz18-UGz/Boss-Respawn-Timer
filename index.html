@@ -986,7 +986,7 @@ if(todayBox){
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('/Boss-Respawn-Timer/sw.js')
         .then(function(registration) {
           console.log('Service Worker registered successfully:', registration.scope);
         })
