@@ -107,10 +107,16 @@ Notification.requestPermission().then(async (permission) => {
   if (permission !== "granted") return;
 
   try {
+    console.log("Registering SW...");
+    
     const registration = await navigator.serviceWorker.register(
-      '/Boss-Respawn-Timer/firebase-messaging-sw.js'
-    );
+      '/Boss-Respawn-Timer/firebase-messaging-sw.js',
+      { scope: '/Boss-Respawn-Timer/' }
+  );
 
+    console.log("SW OK:", registration);
+
+    
     const token = await getToken(messaging, {
       vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
       serviceWorkerRegistration: registration
