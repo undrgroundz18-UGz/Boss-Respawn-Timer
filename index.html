@@ -60,28 +60,61 @@
 
   
 <script type="module">
-  console.log("SCRIPT LOADED");
+console.log("SCRIPT LOADED");
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 import { 
-  getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc,
-  enableIndexedDbPersistence
+  getFirestore, enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import { 
+  getMessaging, getToken, onMessage
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
 // ===== Firebase config =====
-const app = initializeApp({
-  apiKey:"AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
-  authDomain:"boss-respawn-timer.firebaseapp.com",
-  projectId:"boss-respawn-timer",
+const firebaseConfig = {
+  apiKey: "AIzaSyBbINsazxCJkEHBwySyrQ4FLZhdHC85Cyw",
+  authDomain: "boss-respawn-timer.firebaseapp.com",
+  projectId: "boss-respawn-timer",
   storageBucket: "boss-respawn-timer.firebasestorage.app",
   messagingSenderId: "767083470052",
   appId: "1:767083470052:web:17d7453fe66700321760f1",
   measurementId: "G-KPH3R4MRBZ"
-});
+};
+
+// ===== INIT APP (ONLY ONCE) =====
+const app = initializeApp(firebaseConfig);
+
+// ===== FIRESTORE =====
 const db = getFirestore(app);
-  enableIndexedDbPersistence(db).catch(err => {
+
+enableIndexedDbPersistence(db).catch(err => {
   console.warn("Offline persistence error:", err.code);
 });
 
+// ===== MESSAGING =====
+const messaging = getMessaging(app);
+
+// Ask permission + get token
+Notification.requestPermission().then(permission => {
+  if (permission === "granted") {
+
+    getToken(messaging, {
+      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI"
+    }).then(token => {
+      console.log("🔥 FCM TOKEN:", token);
+    });
+
+  }
+});
+
+// Foreground notifications
+onMessage(messaging, payload => {
+  console.log("Message received:", payload);
+  alert(payload.notification.title + "\n" + payload.notification.body);
+});
+  
   // ===== GLOBAL DAYS (ONLY ONE) =====
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const DAY_TULISAN = {
