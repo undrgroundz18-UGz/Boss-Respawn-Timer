@@ -63,7 +63,7 @@
   console.log("SCRIPT LOADED");
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { 
-  getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc,
+  getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, updateDoc
   enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -241,6 +241,57 @@ const resetAllBtn = document.getElementById("resetAllBtn");
   render(); // initial render after JSON + Firestore ready
 })();
 
+  // ==========================
+// 🔥 ALERT ENGINE START
+// ==========================
+const firedAlerts = new Set();
+
+function runAlertEngine(){
+  const now = Date.now();
+
+  bosses.forEach(async (boss) => {
+    const ref = doc(db, "boss_alerts", boss.n);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()) return;
+
+    const alertData = snap.data();
+    const respawn = alertData.respawnAt;
+
+    if(!respawn) return;
+
+    [60, 10].forEach(async (min) => {
+      const key = `${boss.n}-${min}`;
+
+      if(firedAlerts.has(key)) return;
+
+      const triggerTime = respawn - (min * 60000);
+
+      if(now >= triggerTime && !alertData.alerts?.[min]){
+
+        // 🔔 NOTIFICATION
+        if(Notification.permission === "granted"){
+          new Notification(`⚔️ ${boss.n}`, {
+            body: `${min} min before respawn`,
+          });
+        }
+
+        const audio = new Audio("https://freesound.org/data/previews/316/316847_4939433-lq.mp3");
+        audio.play().catch(()=>{});
+
+        firedAlerts.add(key);
+
+        await updateDoc(ref, {
+          [`alerts.${min}`]: true
+        });
+      }
+    });
+  });
+}
+
+// run every 15 seconds
+setInterval(runAlertEngine, 15000);
+
 // ✅ schedule alerts AFTER bosses are ready
 bosses.forEach(b => scheduleBossAlerts(b));
 
@@ -406,6 +457,18 @@ logs = logs.slice(0,5);
       lastKill: time,
       logs: logs
     });
+
+    const alertRef = doc(db, "boss_alerts", bossName);
+
+await setDoc(alertRef, {
+  boss: bossName,
+  respawnAt: respawnTime,
+  alerts: {
+    "60": false,
+    "10": false
+  },
+  updatedAt: Date.now()
+});
 
     // Update local cache immediately for UI
     data[bossName] = {
