@@ -109,22 +109,23 @@ async function initFCM() {
 
     console.log("Registering SW...");
 
-    // ✅ IMPORTANT FIX: use relative path OR consistent base path
+    // STEP 1
     const registration = await navigator.serviceWorker.register(
-  './firebase-messaging-sw.js'
-);
-    console.log("SW registered:", registration);
+      './firebase-messaging-sw.js'
+    );
 
+    // STEP 2 (WAIT FULLY)
     await navigator.serviceWorker.ready;
 
-    console.log("SW ACTIVE OK");
+    console.log("SW ACTIVE:", registration.active);
 
+    // STEP 3
     const token = await getToken(messaging, {
-      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
+      vapidKey: "YOUR_VAPID_KEY",
       serviceWorkerRegistration: registration
     });
 
-    console.log("🔥 FCM TOKEN:", token);
+    console.log("FCM TOKEN:", token);
 
   } catch (err) {
     console.error("FCM ERROR:", err);
