@@ -74,9 +74,8 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { 
-  getMessaging, getToken, onMessage
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { getMessaging, getToken, onMessage } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 // ===== Firebase config =====
 const firebaseConfig = {
@@ -108,11 +107,16 @@ async function initFCM() {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return;
 
+    console.log("Registering SW...");
+
     const registration = await navigator.serviceWorker.register(
-      '/Boss-Respawn-Timer/firebase-messaging-sw.js'
+      './firebase-messaging-sw.js'
     );
 
+    // 🔥 IMPORTANT: wait for SW to become active
     await navigator.serviceWorker.ready;
+
+    console.log("SW ACTIVE:", registration.active);
 
     const token = await getToken(messaging, {
       vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
@@ -121,12 +125,13 @@ async function initFCM() {
 
     console.log("🔥 FCM TOKEN:", token);
 
-  } catch (e) {
-    console.error("FCM ERROR:", e);
+  } catch (err) {
+    console.error("FCM ERROR:", err);
   }
 }
 
 initFCM();
+window.initFCM = initFCM;
 
 // Foreground notifications
 onMessage(messaging, payload => {
