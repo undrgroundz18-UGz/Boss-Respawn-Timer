@@ -105,7 +105,8 @@ const messaging = getMessaging(app);
 // Ask permission + get token
 async function initFCM() {
   try {
-    console.log("Registering SW...");
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
 
     const registration = await navigator.serviceWorker.register(
       '/Boss-Respawn-Timer/firebase-messaging-sw.js'
@@ -113,23 +114,15 @@ async function initFCM() {
 
     await navigator.serviceWorker.ready;
 
-    console.log("SW READY:", registration);
-
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      console.log("Permission denied");
-      return;
-    }
-
     const token = await getToken(messaging, {
-      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0VFuDUq0Yi1obKw_waTwJ_Y4VI",
+      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
       serviceWorkerRegistration: registration
     });
 
     console.log("🔥 FCM TOKEN:", token);
 
-  } catch (err) {
-    console.error("FCM setup error:", err);
+  } catch (e) {
+    console.error("FCM ERROR:", e);
   }
 }
 
