@@ -110,7 +110,8 @@ async function initFCM() {
     console.log("Registering SW...");
 
     const registration = await navigator.serviceWorker.register(
-      './firebase-messaging-sw.js'
+      './firebase-messaging-sw.js',
+      { scope: './' }
     );
 
     // 🔥 IMPORTANT: wait for SW to become active
