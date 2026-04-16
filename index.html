@@ -103,15 +103,23 @@ enableIndexedDbPersistence(db).catch(err => {
 const messaging = getMessaging(app);
 
 // Ask permission + get token
-Notification.requestPermission().then(permission => {
-  if (permission === "granted") {
+Notification.requestPermission().then(async (permission) => {
+  if (permission !== "granted") return;
 
-    getToken(messaging, {
-      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI"
-    }).then(token => {
-      console.log("🔥 FCM TOKEN:", token);
+  try {
+    const registration = await navigator.serviceWorker.register(
+      '/Boss-Respawn-Timer/firebase-messaging-sw.js'
+    );
+
+    const token = await getToken(messaging, {
+      vapidKey: "BF40-j0GM63r6E8KHJX3I4YziO3BELvpNmBgxP6Q5DAkVHJsfYdbrNNFhDb2q0FVuDUq0Yi1obKw_waTwJ_Y4VI",
+      serviceWorkerRegistration: registration
     });
 
+    console.log("🔥 FCM TOKEN:", token);
+
+  } catch (err) {
+    console.error("FCM setup error:", err);
   }
 });
 
